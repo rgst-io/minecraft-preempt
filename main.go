@@ -5,21 +5,16 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	nativenet "net"
 
-	"github.com/Tnze/go-mc/net"
 	pk "github.com/Tnze/go-mc/net/packet"
 	"github.com/jaredallard/minecraft-preempt/pkg/config"
 	"github.com/jaredallard/minecraft-preempt/pkg/instance"
+	net "github.com/jaredallard/minecraft-preempt/pkg/minecraft"
 
 	"github.com/golang/glog"
-)
-
-// Target server address
-var (
-	RemoteServerIP   = ""
-	RemoteServerPort = 25565
 )
 
 // Cached last status of the server
@@ -116,16 +111,26 @@ func main() {
 
 	google := instance.NewClient()
 
-	RemoteServerIP = conf.Server.Hostname
-	RemoteServerPort = conf.Server.Port
-
 	// Listen for incoming connections.
-	l, err := net.ListenMC("localhost:25565")
+	l, err := net.ListenMC("0.0.0.0:25565")
 	if err != nil {
 		fmt.Println("Error listening:", err.Error())
 		os.Exit(1)
 	}
 	defer l.Close()
+
+	// update the cached status every 5 minutes
+	go func() {
+		for {
+			status, err := google.Status(conf.Instance.Project, conf.Instance.Zone, conf.Instance.ID)
+			if err != nil {
+				glog.Warningf("failed to get parent instance status: %v", err)
+				return
+			}
+			cachedStatus = status
+			time.Sleep(5 * time.Minute)
+		}
+	}()
 
 	for {
 		conn, err := l.Accept()
@@ -159,6 +164,8 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google *instance.Client) {
 		}
 		c.status(conf.Server.Version, conf.Server.ProtocolVersion, statusMessage)
 	case PlayerLogin:
+		glog.Infof("starting proxy to remote '%s' for '%s'", fmt.Sprintf("%s:%d", conf.Server.Hostname, conf.Server.Port), conn.Socket.RemoteAddr())
+
 		status, err := google.Status(conf.Instance.Project, conf.Instance.Zone, conf.Instance.ID)
 		if err != nil {
 			glog.Warningf("failed to get parent instance status: %v", err)
@@ -203,18 +210,18 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google *instance.Client) {
 			return
 		}
 
-		glog.Infof("starting proxy to remote '%s' for '%s'", fmt.Sprintf("%s:%d", RemoteServerIP, RemoteServerPort), conn.Socket.RemoteAddr())
-		rconn, err := nativenet.Dial("tcp", fmt.Sprintf("%s:%d", RemoteServerIP, RemoteServerPort))
+		rconn, err := nativenet.Dial("tcp", fmt.Sprintf("%s:%d", conf.Server.Hostname, conf.Server.Port))
 		if err != nil {
 			glog.Errorf("failed to open connection to remote: %v", err)
 			return
 		}
+		defer rconn.Close()
 
 		handshake := pk.Marshal(
 			0x00,
 			pk.VarInt(c.ProtocolVersion),
-			pk.String(RemoteServerIP),
-			pk.UnsignedShort(RemoteServerPort),
+			pk.String(conf.Server.Hostname),
+			pk.UnsignedShort(conf.Server.Port),
 			pk.Byte(2),
 		)
 		if _, err = rconn.Write(handshake.Pack(0)); err != nil {
@@ -222,7 +229,7 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google *instance.Client) {
 			return
 		}
 
-		glog.Infof("sent emulated handshake")
+		glog.Infof("optimistically sent handshake to remote")
 
 		go func() {
 			_, err := io.Copy(conn.Socket, rconn)
@@ -232,7 +239,7 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google *instance.Client) {
 			}
 		}()
 
-		_, err = io.Copy(rconn, conn.Socket)
+		_, err = io.Copy(rconn, conn.ByteReader)
 		if err != nil {
 			glog.Errorf("failed to write to remote from client: %v", err)
 			return
