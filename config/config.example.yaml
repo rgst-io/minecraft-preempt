@@ -1,0 +1,18 @@
+version: 1
+server:
+  hostname: yourhost.com/ip
+  port: 25565
+
+  # Get from here: https://wiki.vg/Protocol_History
+  protocolVersion: 490 
+  textVersion: 1.14.3
+instance:
+  # GCP ONLY RIGHT NOW
+  # ID of your instance
+  id: 3221088494815516132
+
+  # GCP Project
+  project: triton-ops
+
+  # GCP Zone
+  zone: us-west1-b

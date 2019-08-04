@@ -1,0 +1,4 @@
+vendor
+bin
+*.json
+config/config.yaml
