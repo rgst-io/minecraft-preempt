@@ -29,12 +29,14 @@ jobs:
         run: |-
           git checkout -b main
       - name: Release
-        run: ./node_modules/.bin/semantic-release --dry-run
+        run: npx semantic-release --dry-run
 
   release:
     name: Release
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    needs:
+      - release-dryrun
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -53,4 +55,4 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./node_modules/.bin/semantic-release
+        run: npx semantic-release
