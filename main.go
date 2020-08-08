@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -10,8 +11,9 @@ import (
 	nativenet "net"
 
 	pk "github.com/Tnze/go-mc/net/packet"
+	"github.com/jaredallard/minecraft-preempt/pkg/cloud"
+	gcp "github.com/jaredallard/minecraft-preempt/pkg/cloud/gcp"
 	"github.com/jaredallard/minecraft-preempt/pkg/config"
-	"github.com/jaredallard/minecraft-preempt/pkg/instance"
 	net "github.com/jaredallard/minecraft-preempt/pkg/minecraft"
 
 	"github.com/golang/glog"
@@ -19,7 +21,7 @@ import (
 
 // Cached last status of the server
 var (
-	cachedStatus = "UNKNOWN"
+	cachedStatus = cloud.StatusUnknown
 )
 
 // Client is a minecraft protocol aware connection somewhat
@@ -109,12 +111,16 @@ func main() {
 		panic(err)
 	}
 
-	google := instance.NewClient()
+	google, err := gcp.NewClient(context.Background(), conf.Instance.Project, conf.Instance.Zone)
+	if err != nil {
+		fmt.Printf("failed to create gcp client: %v\n", err)
+		os.Exit(1)
+	}
 
 	// Listen for incoming connections.
 	l, err := net.ListenMC("0.0.0.0:25565")
 	if err != nil {
-		fmt.Println("Error listening:", err.Error())
+		fmt.Printf("Error listening: %v\n", err)
 		os.Exit(1)
 	}
 	defer l.Close()
@@ -122,7 +128,7 @@ func main() {
 	// update the cached status every 5 minutes
 	go func() {
 		for {
-			status, err := google.Status(conf.Instance.Project, conf.Instance.Zone, conf.Instance.ID)
+			status, err := google.Status(conf.Instance.ID)
 			if err != nil {
 				glog.Warningf("failed to get parent instance status: %v", err)
 				return
@@ -142,7 +148,7 @@ func main() {
 }
 
 // Handle a connection
-func Handle(conn net.Conn, conf *config.ProxyConfig, google *instance.Client) {
+func Handle(conn net.Conn, conf *config.ProxyConfig, google cloud.Provider) {
 	defer conn.Close()
 	c := Client{Conn: conn}
 
@@ -166,7 +172,7 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google *instance.Client) {
 	case PlayerLogin:
 		glog.Infof("starting proxy to remote '%s' for '%s'", fmt.Sprintf("%s:%d", conf.Server.Hostname, conf.Server.Port), conn.Socket.RemoteAddr())
 
-		status, err := google.Status(conf.Instance.Project, conf.Instance.Zone, conf.Instance.ID)
+		status, err := google.Status(conf.Instance.ID)
 		if err != nil {
 			glog.Warningf("failed to get parent instance status: %v", err)
 			return
@@ -189,18 +195,20 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google *instance.Client) {
 		cachedStatus = status
 
 		// start the instance
-		if status == "STOPPED" || status == "TERMINATED" {
+		if status == cloud.StatusStopped {
 			glog.Infof("starting server ...")
 			err := c.WritePacket(serverDisconnectPacket)
 			if err != nil {
 				glog.Warningf("failed to send starting packet: %v", err)
 			}
 
-			if err := google.Start(conf.Instance.Project, conf.Instance.Zone, conf.Instance.ID); err != nil {
+			if err := google.Start(conf.Instance.ID); err != nil {
 				glog.Errorf("failed to start instance: %v", err)
 			}
 			return
-		} else if status != "RUNNING" {
+		}
+
+		if status != cloud.StatusRunning {
 			// tell the client we're waiting for the server to start
 			glog.Infof("server is status '%s', waiting ...", status)
 			err := c.WritePacket(serverDisconnectPacket)
@@ -224,6 +232,7 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google *instance.Client) {
 			pk.UnsignedShort(conf.Server.Port),
 			pk.Byte(2),
 		)
+
 		if _, err = rconn.Write(handshake.Pack(0)); err != nil {
 			glog.Errorf("failed to send created handshake: %v", err)
 			return
