@@ -5,7 +5,7 @@ LDFLAGS    := -w -s
 GOFLAGS    :=
 TAGS       := 
 BINDIR     := $(CURDIR)/bin
-PKGDIR     := github.com/jaredallard/minecraft-preempt
+APP_VERSION := v0.0.0
 
 # Required for globs to work correctly
 SHELL=/bin/bash
@@ -16,19 +16,18 @@ all: build
 
 .PHONY: dep
 dep:
-	@echo " ===> Installing dependencies via '$$(awk '{ print $$1 }' <<< "$(PKG)" )' <=== "
 	@$(PKG)
 
 .PHONY: build
 build:
-	@echo " ===> building releases in ./bin/... <=== "
-	GO111MODULE=on CGO_ENABLED=1 $(GO) build -o $(BINDIR)/minecraft-preempt -v $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' $(PKGDIR)
+	GO111MODULE=on CGO_ENABLED=1 $(GO) build -o $(BINDIR)/ -v $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' ./
 
-.PHONY: gofmt
-gofmt:
-	@echo " ===> Running go fmt <==="
-	gofmt -w ./
+.PHONY: release
+release:
+	git tag -d "$(APP_VERSION)" || true
+	git tag "$(APP_VERSION)"
+	./scripts/gobin.sh github.com/goreleaser/goreleaser release --skip-publish --rm-dist
 
-.PHONY: hooks
-hooks:
-	@./hack/hooks
+.PHONY: fmt
+fmt:
+	goimports -w ./
