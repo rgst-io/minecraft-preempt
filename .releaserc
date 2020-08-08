@@ -3,10 +3,13 @@
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     ["@semantic-release/exec", {
-      "prepareCmd": "make release APP_VERSION=${nextRelease.version}",
+      "generateNotesCmd": "make release APP_VERSION=${nextRelease.version}"
     }],
     ["@semantic-release/github", {
       "assets": ["dist/*.tar.gz", "dist/checksums.txt"]
     }]
-  ]
+  ],
+  "branches": [{
+    "name": "main"
+  }]
 }
