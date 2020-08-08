@@ -1,5 +1,7 @@
 package cloud
 
+import "context"
+
 type ProviderStatus string
 
 var (
@@ -12,8 +14,8 @@ var (
 
 type Provider interface {
 	// Status fetches the status of a remote instance
-	Status(instanceID string) (ProviderStatus, error)
+	Status(ctx context.Context, instanceID string) (ProviderStatus, error)
 
 	// Start starts a remote instance
-	Start(instanceID string) error
+	Start(ctx context.Context, instanceID string) error
 }
