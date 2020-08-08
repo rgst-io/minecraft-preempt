@@ -33,6 +33,15 @@ jobs:
           export GITHUB_REF=main
           git checkout -b main
           yarn semantic-release --dry-run
+          echo "::set-env name=VERSION::$(cat dist/VERSION)"
+      - name: Notify of Version Change
+        uses: unsplash/comment-on-pr@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          msg: "This will be released as: ${{ env.VERSION }}"
+          check_for_duplicate_msg: true
+        if: github.event_name == 'pull_request' && env.VERSION != ''
 
   release:
     name: Release
