@@ -32,10 +32,10 @@ type ServerConfig struct {
 	Hostname string `yaml:"hostname"`
 
 	// Port of the remote server
-	Port int `yaml:"port"`
+	Port uint `yaml:"port"`
 
 	// ProtocolVersion of the server
-	ProtocolVersion int `yaml:"protocolVersion"`
+	ProtocolVersion uint `yaml:"protocolVersion"`
 
 	// Version of the server
 	Version string `yaml:"textVersion"`

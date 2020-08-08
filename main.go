@@ -46,22 +46,39 @@ func handle(ctx context.Context, conn minecraft.Conn, s *config.ServerConfig, in
 		return
 	}
 
+	status := &minecraft.Status{
+		Version: &minecraft.StatusVersion{
+			Name:     s.Version,
+			Protocol: int(s.ProtocolVersion),
+		},
+		Players: &minecraft.StatusPlayers{
+			Max:    0,
+			Online: 0,
+		},
+		Description: &minecraft.StatusDescription{
+			Text: "",
+		},
+	}
+
 	switch nextState {
 	case CheckState:
-		statusMessage := ""
 		switch cachedStatus {
 		case cloud.StatusRunning:
-			// TODO(jaredallard): proxy the MOTD and status info
-			statusMessage = "Server is online!"
+			newStatus, err := minecraft.GetServerStatus(s.Hostname, s.Port)
+			if err != nil {
+				status.Description.Text = "Server is online, but failed to proxy status"
+			} else {
+				status = newStatus
+			}
 		case cloud.StatusStarting:
-			statusMessage = "Server is starting, please wait ..."
+			status.Description.Text = "Server is starting, please wait!"
 		case cloud.StatusStopping:
-			statusMessage = "Server is stopping, please wait to start it!"
+			status.Description.Text = "Server is stopping, please wait to start it!"
 		default:
-			statusMessage = "Server is hibernated. Join to start it."
+			status.Description.Text = "Server is hibernated. Join to start it."
 		}
 
-		c.SendStatus(s.Version, s.ProtocolVersion, statusMessage)
+		c.SendStatus(status)
 	case PlayerLogin:
 		glog.Infof("starting proxy to remote '%s' for '%s'", fmt.Sprintf("%s:%d", s.Hostname, s.Port), conn.Socket.RemoteAddr())
 
