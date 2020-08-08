@@ -13,7 +13,7 @@ import (
 var (
 	// ErrNotStopped is an error that is thrown when an instance is attempted
 	// to be stopped but is found to be not running
-	ErrNotStopped = errors.New("Not stopped")
+	ErrNotStopped = errors.New("not stopped")
 )
 
 // Client is a gcs client
@@ -48,7 +48,7 @@ func NewClient(ctx context.Context, project, zone string) (*Client, error) {
 }
 
 // Status returns the status of an instance
-func (c *Client) Status(instanceID string) (cloud.ProviderStatus, error) {
+func (c *Client) Status(ctx context.Context, instanceID string) (cloud.ProviderStatus, error) {
 	gr := c.compute.Instances.Get(c.project, c.zone, instanceID)
 	i, err := gr.Do()
 	if err != nil {
@@ -72,7 +72,7 @@ func (c *Client) Status(instanceID string) (cloud.ProviderStatus, error) {
 }
 
 // Start a instance if it's not already running
-func (c *Client) Start(instanceID string) error {
+func (c *Client) Start(ctx context.Context, instanceID string) error {
 	gr := c.compute.Instances.Get(c.project, c.zone, instanceID)
 	i, err := gr.Do()
 	if err != nil {

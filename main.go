@@ -5,16 +5,16 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"time"
 
-	nativenet "net"
-
 	pk "github.com/Tnze/go-mc/net/packet"
 	"github.com/jaredallard/minecraft-preempt/pkg/cloud"
+	"github.com/jaredallard/minecraft-preempt/pkg/cloud/docker"
 	gcp "github.com/jaredallard/minecraft-preempt/pkg/cloud/gcp"
 	"github.com/jaredallard/minecraft-preempt/pkg/config"
-	net "github.com/jaredallard/minecraft-preempt/pkg/minecraft"
+	"github.com/jaredallard/minecraft-preempt/pkg/minecraft"
 
 	"github.com/golang/glog"
 )
@@ -24,161 +24,46 @@ var (
 	cachedStatus = cloud.StatusUnknown
 )
 
-// Client is a minecraft protocol aware connection somewhat
-type Client struct {
-	net.Conn
-
-	ProtocolVersion int32
-}
-
-func (c *Client) handshake() (nextState int32, err error) {
-	p, err := c.ReadPacket()
-	if err != nil {
-		return -1, err
-	}
-	if p.ID != 0 {
-		return -1, fmt.Errorf("packet ID 0x%X is not handshake", p.ID)
-	}
-
-	var (
-		sid pk.String
-		spt pk.Short
-	)
-	if err := p.Scan(
-		(*pk.VarInt)(&c.ProtocolVersion),
-		&sid, &spt,
-		(*pk.VarInt)(&nextState)); err != nil {
-		return -1, err
-	}
-
-	return nextState, nil
-}
-
-func (c *Client) status(version string, protoVersion int, statusMessage string) {
-	for i := 0; i < 2; i++ {
-		p, err := c.ReadPacket()
-		if err != nil {
-			break
-		}
-
-		switch p.ID {
-		case 0x00:
-			respPack := getStatus(version, protoVersion, statusMessage)
-			c.WritePacket(respPack)
-		case 0x01:
-			c.WritePacket(p)
-		}
-	}
-}
-
-// getStatus returns a templated status
-func getStatus(version string, protoVersion int, statusMessage string) pk.Packet {
-	return pk.Packet{
-		ID: 0x00,
-		Data: pk.String(fmt.Sprintf(`
-		{
-			"version": {
-				"name": "%s",
-				"protocol": %d
-			},
-			"players": {
-				"max": 1,
-				"online": 0,
-				"sample": []
-			},	
-			"description": {
-				"text": "%s"
-			}
-		}
-		`, version, protoVersion, statusMessage)).Encode(),
-	}
-}
+const (
+	CheckState = iota + 1
+	PlayerLogin
+)
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: example -stderrthreshold=[INFO|WARN|FATAL] -log_dir=[string]\n")
+	fmt.Fprintf(os.Stderr, "usage: minecraft-preempt -stderrthreshold=[INFO|WARN|FATAL] -log_dir=[string]\n")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
 
-func main() {
-	flag.Usage = usage
-	flag.Set("logtostderr", "true")
-	flag.Set("v", "2")
-	flag.Parse()
-
-	conf, err := config.LoadProxyConfig()
-	if err != nil {
-		panic(err)
-	}
-
-	google, err := gcp.NewClient(context.Background(), conf.Instance.Project, conf.Instance.Zone)
-	if err != nil {
-		fmt.Printf("failed to create gcp client: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Listen for incoming connections.
-	l, err := net.ListenMC("0.0.0.0:25565")
-	if err != nil {
-		fmt.Printf("Error listening: %v\n", err)
-		os.Exit(1)
-	}
-	defer l.Close()
-
-	// update the cached status every 5 minutes
-	go func() {
-		for {
-			status, err := google.Status(conf.Instance.ID)
-			if err != nil {
-				glog.Warningf("failed to get parent instance status: %v", err)
-				return
-			}
-			cachedStatus = status
-			time.Sleep(5 * time.Minute)
-		}
-	}()
-
-	for {
-		conn, err := l.Accept()
-		if err != nil {
-			panic(err)
-		}
-		go Handle(conn, conf, google)
-	}
-}
-
-// Handle a connection
-func Handle(conn net.Conn, conf *config.ProxyConfig, google cloud.Provider) {
+// handle handles minecraft connections
+func handle(ctx context.Context, conn minecraft.Conn, s *config.ServerConfig, instanceID string, cld cloud.Provider) {
 	defer conn.Close()
-	c := Client{Conn: conn}
+	c := minecraft.Client{Conn: conn}
 
-	nextState, err := c.handshake()
+	nextState, err := c.Handshake()
 	if err != nil {
 		glog.Errorf("handshake failed: %v", err)
 		return
 	}
 
-	const (
-		CheckState  = 1
-		PlayerLogin = 2
-	)
 	switch nextState {
 	case CheckState:
-		statusMessage := "Server is hibernated. Join to start it."
-		if cachedStatus == "RUNNING" { // TODO(jaredallard): get real information here
+		statusMessage := ""
+		switch cachedStatus {
+		case cloud.StatusRunning:
+			// TODO(jaredallard): proxy the MOTD and status info
 			statusMessage = "Server is online!"
+		case cloud.StatusStarting:
+			statusMessage = "Server is starting, please wait ..."
+		case cloud.StatusStopping:
+			statusMessage = "Server is stopping, please wait to start it!"
+		default:
+			statusMessage = "Server is hibernated. Join to start it."
 		}
-		c.status(conf.Server.Version, conf.Server.ProtocolVersion, statusMessage)
+
+		c.SendStatus(s.Version, s.ProtocolVersion, statusMessage)
 	case PlayerLogin:
-		glog.Infof("starting proxy to remote '%s' for '%s'", fmt.Sprintf("%s:%d", conf.Server.Hostname, conf.Server.Port), conn.Socket.RemoteAddr())
-
-		status, err := google.Status(conf.Instance.ID)
-		if err != nil {
-			glog.Warningf("failed to get parent instance status: %v", err)
-			return
-		}
-
-		glog.V(3).Infof("parent instance status is %s", status)
+		glog.Infof("starting proxy to remote '%s' for '%s'", fmt.Sprintf("%s:%d", s.Hostname, s.Port), conn.Socket.RemoteAddr())
 
 		serverDisconnectPacket := pk.Packet{
 			ID: 0x00,
@@ -189,28 +74,28 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google cloud.Provider) {
 							"text": "Server is currently being launched. (Status: %s)"
 						}]
 					}
-				`, status)).Encode(),
+				`, cachedStatus)).Encode(),
 		}
 
-		cachedStatus = status
-
 		// start the instance
-		if status == cloud.StatusStopped {
+		if cachedStatus == cloud.StatusStopped {
 			glog.Infof("starting server ...")
 			err := c.WritePacket(serverDisconnectPacket)
 			if err != nil {
 				glog.Warningf("failed to send starting packet: %v", err)
 			}
 
-			if err := google.Start(conf.Instance.ID); err != nil {
+			if err := cld.Start(ctx, instanceID); err != nil {
 				glog.Errorf("failed to start instance: %v", err)
+			} else {
+				cachedStatus = cloud.StatusStarting
 			}
 			return
 		}
 
-		if status != cloud.StatusRunning {
+		if cachedStatus != cloud.StatusRunning {
 			// tell the client we're waiting for the server to start
-			glog.Infof("server is status '%s', waiting ...", status)
+			glog.Infof("server is status '%s', waiting ...", cachedStatus)
 			err := c.WritePacket(serverDisconnectPacket)
 			if err != nil {
 				glog.Warningf("failed to send starting packet: %v", err)
@@ -218,7 +103,8 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google cloud.Provider) {
 			return
 		}
 
-		rconn, err := nativenet.Dial("tcp", fmt.Sprintf("%s:%d", conf.Server.Hostname, conf.Server.Port))
+		glog.Infof("opening connection to '%s:%d'", s.Hostname, s.Port)
+		rconn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", s.Hostname, s.Port))
 		if err != nil {
 			glog.Errorf("failed to open connection to remote: %v", err)
 			return
@@ -228,8 +114,8 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google cloud.Provider) {
 		handshake := pk.Marshal(
 			0x00,
 			pk.VarInt(c.ProtocolVersion),
-			pk.String(conf.Server.Hostname),
-			pk.UnsignedShort(conf.Server.Port),
+			pk.String(s.Hostname),
+			pk.UnsignedShort(s.Port),
 			pk.Byte(2),
 		)
 
@@ -253,5 +139,76 @@ func Handle(conn net.Conn, conf *config.ProxyConfig, google cloud.Provider) {
 			glog.Errorf("failed to write to remote from client: %v", err)
 			return
 		}
+	}
+}
+
+func main() {
+	// TODO(jaredallard): implement context cancellation
+	ctx, cancel := context.WithCancel(context.Background())
+	_ = cancel
+
+	flag.Usage = usage
+	flag.Set("logtostderr", "true")
+	flag.Set("v", "2")
+	flag.Parse()
+
+	conf, err := config.LoadProxyConfig()
+	if err != nil {
+		glog.Fatalf("failed to load config: %v", err)
+	}
+
+	var cloudProvider cloud.Provider
+	var instanceID string
+
+	switch conf.Cloud {
+	case config.CloudGCP:
+		instanceID = conf.CloudConfig.GCP.InstanceID
+		cloudProvider, err = gcp.NewClient(context.Background(), conf.CloudConfig.GCP.Project, conf.CloudConfig.GCP.Zone)
+	case config.CloudDocker:
+		instanceID = conf.CloudConfig.Docker.ContainerID
+		cloudProvider, err = docker.NewClient()
+	default:
+		err = fmt.Errorf("unknown cloud provider")
+	}
+	if err != nil {
+		glog.Fatalf("failed to create cloud provider '%s': %v", conf.Cloud, err)
+	}
+
+	if instanceID == "" {
+		glog.Fatalf("missing instance id")
+	}
+
+	// Listen for incoming connections.
+	l, err := minecraft.ListenMC("0.0.0.0:25565")
+	if err != nil {
+		glog.Fatalf("failed to start proxy: %v\n", err)
+	}
+	defer l.Close()
+
+	// update the cached status every 5 minutes
+	go func() {
+		for {
+			status, err := cloudProvider.Status(ctx, instanceID)
+			if err != nil {
+				glog.Warningf("failed to get parent instance status: %v", err)
+				return
+			}
+
+			if cachedStatus != status {
+				glog.Infof("server transitioned from '%s' -> '%s'", cachedStatus, status)
+				cachedStatus = status
+			}
+
+			time.Sleep(5 * time.Minute)
+		}
+	}()
+
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			glog.Errorf("failed to accept connection: %v", err)
+			continue
+		}
+		go handle(ctx, conn, conf.Server, instanceID, cloudProvider)
 	}
 }

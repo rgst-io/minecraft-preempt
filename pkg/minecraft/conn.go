@@ -1,5 +1,5 @@
 // Package net pack network connection for Minecraft.
-package net
+package minecraft
 
 import (
 	"bufio"

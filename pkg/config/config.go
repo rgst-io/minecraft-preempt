@@ -8,40 +8,56 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var (
+	CloudGCP    Cloud = "gcp"
+	CloudDocker Cloud = "docker"
+)
+
+type Cloud string
+
 // ProxyConfig is a configuration file for the proxy
 type ProxyConfig struct {
-	// Version of the configuration file
-	Version string `yaml:"version"`
-
-	// Server configuration block
-	Server struct {
-		// Hostname of the remote server
-		Hostname string `yaml:"hostname"`
-
-		// Port of the remote server
-		Port int `yaml:"port"`
-
-		// ProtocolVersion of the server
-		ProtocolVersion int `yaml:"protocolVersion"`
-
-		// Version of the server
-		Version string `yaml:"textVersion"`
-	} `yaml:"server"`
-
-	// Instance is a GCP instance
-	Instance struct {
-		// ID of the instance
-		ID string `yaml:"id"`
-
-		// Project name
-		Project string `yaml:"project"`
-
-		// Zone of the instance
-		Zone string `yaml:"zone"`
-	} `yaml:"instance"`
+	// The Cloud this instance is in
+	Cloud       Cloud         `yaml:"cloud"`
+	Server      *ServerConfig `yaml:"server"`
+	CloudConfig struct {
+		GCP    *GCPConfig    `yaml:"gcp"`
+		Docker *DockerConfig `yaml:"docker"`
+	} `yaml:"cloudConfig"`
 }
 
-// LoadProxyConfig loads a proxy configuration fiole
+// Server configuration block
+type ServerConfig struct {
+	// Hostname of the remote server
+	Hostname string `yaml:"hostname"`
+
+	// Port of the remote server
+	Port int `yaml:"port"`
+
+	// ProtocolVersion of the server
+	ProtocolVersion int `yaml:"protocolVersion"`
+
+	// Version of the server
+	Version string `yaml:"textVersion"`
+}
+
+type GCPConfig struct {
+	// InstanceID is the id of the GCP instance
+	InstanceID string `yaml:"instanceID"`
+
+	// Project name is the project the instance is in
+	Project string `yaml:"project"`
+
+	// Zone is the zone the instance is in
+	Zone string `yaml:"zone"`
+}
+
+type DockerConfig struct {
+	// ContainerID is the ID of the container to run
+	ContainerID string `yaml:"containerID"`
+}
+
+// LoadProxyConfig loads a proxy configuration file
 func LoadProxyConfig() (*ProxyConfig, error) {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
