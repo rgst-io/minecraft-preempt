@@ -27,9 +27,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |-
-          export GITHUB_EVENT_NAME=push
-          export GITHUB_REF=main
-          git checkout -b main
+          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then 
+            export GITHUB_EVENT_NAME=push
+            export GITHUB_REF=main
+            git checkout -b main || true
+          fi
+
           yarn semantic-release --dry-run
           echo "::set-env name=VERSION::$(cat dist/VERSION)"
       - name: Notify of Version Change
