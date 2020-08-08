@@ -26,6 +26,8 @@ jobs:
       - name: Install Dependencies
         run: NODE_ENV=development yarn
       - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |-
           export GITHUB_EVENT_NAME=push
           export GITHUB_REF=main
