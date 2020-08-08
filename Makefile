@@ -24,10 +24,10 @@ build:
 
 .PHONY: release
 release:
-	git tag -d "$(APP_VERSION)" || true
-	git tag "$(APP_VERSION)"
-	./scripts/gobin.sh github.com/goreleaser/goreleaser release --skip-publish --rm-dist
-	echo "$(APP_VERSION)" > dist/VERSION
+	@git tag -d "$(APP_VERSION)" >&2 || true
+	@git tag "$(APP_VERSION)" >&2
+	@./scripts/gobin.sh github.com/goreleaser/goreleaser release --skip-publish --rm-dist
+	@echo "$(APP_VERSION)" > dist/VERSION
 
 .PHONY: fmt
 fmt:
