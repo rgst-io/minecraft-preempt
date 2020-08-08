@@ -150,6 +150,10 @@ func main() {
 				// Shut down instance if there are no players
 				// remaining after the specified time in config
 				err = maybeShutdown(conf, google)
+				if err != nil {
+					glog.Warningf("unable to auto-shutdown server: %v", err)
+					return
+				}
 			}
 
 			time.Sleep(serverPollRate)
