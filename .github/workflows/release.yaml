@@ -1,4 +1,4 @@
-name: Linters
+name: Lifecycle
 
 on:
   push:
@@ -24,7 +24,9 @@ jobs:
           go-version: "^1.14"
       - name: Environment Details
         run: go version && node --version
+      - name: Install Dependencies
+        run: NODE_ENV=development yarn
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+        run: ./node_modules/.bin/semantic-release

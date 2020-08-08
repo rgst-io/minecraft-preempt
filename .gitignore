@@ -3,3 +3,4 @@ bin
 *.json
 dist/
 config/config.yaml
+node_modules
