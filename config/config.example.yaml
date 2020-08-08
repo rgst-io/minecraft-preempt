@@ -1,4 +1,5 @@
 version: 1
+
 server:
   hostname: yourhost.com/ip
   port: 25565
@@ -6,6 +7,13 @@ server:
   # Get from here: https://wiki.vg/Protocol_History
   protocolVersion: 490 
   textVersion: 1.14.3
+
+  # Shut down the server after this amount of time has passed since the last user left.
+  # This must be at least 1 minute, because that is how often the server is pinged.
+  # Set to zero if you do not want this behavior.
+  # See https://golang.org/pkg/time/#ParseDuration for syntax.
+  shutDownAfter: 5m
+
 instance:
   # GCP ONLY RIGHT NOW
   # ID of your instance

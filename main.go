@@ -19,7 +19,9 @@ import (
 
 // Cached last status of the server
 var (
-	cachedStatus = "UNKNOWN"
+	cachedStatus      = "UNKNOWN"
+	playersLastSeenAt = time.Now()
+	serverPollRate    = time.Minute
 )
 
 // Client is a minecraft protocol aware connection somewhat
@@ -109,6 +111,10 @@ func main() {
 		panic(err)
 	}
 
+	fmt.Println(conf.Server.ShutDownAfter)
+
+	return
+
 	google := instance.NewClient()
 
 	// Listen for incoming connections.
@@ -120,6 +126,7 @@ func main() {
 	defer l.Close()
 
 	// update the cached status every 5 minutes
+	// and also check if players are on the server or not
 	go func() {
 		for {
 			status, err := google.Status(conf.Instance.Project, conf.Instance.Zone, conf.Instance.ID)
@@ -127,8 +134,29 @@ func main() {
 				glog.Warningf("failed to get parent instance status: %v", err)
 				return
 			}
+
 			cachedStatus = status
-			time.Sleep(5 * time.Minute)
+
+			// If the server is running, let's see how many players are online
+			if status == "RUNNING" && conf.Server.ShutDownAfter != 0 {
+				meta, err := pingStatus(conf.Server.Hostname, conf.Server.Port)
+				if err != nil {
+					glog.Warningf("unable to ping server to check status: %v", err)
+					return
+				}
+
+				// If there's at least one person online, update
+				// our players-last-seen-at tracker
+				if meta.Players.Online > 0 {
+					playersLastSeenAt = time.Now()
+				}
+
+				// Shut down instance if there are no players
+				// remaining after the specified time in config
+				err = maybeShutdown(conf, google)
+			}
+
+			time.Sleep(serverPollRate)
 		}
 	}()
 

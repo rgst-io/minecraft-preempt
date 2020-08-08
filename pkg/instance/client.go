@@ -11,8 +11,12 @@ import (
 
 var (
 	// ErrNotStopped is an error that is thrown when an instance is attempted
-	// to be stopped but is found to be not running
+	// to be started but is found to be running
 	ErrNotStopped = errors.New("Not stopped")
+
+	// ErrNotRunning is an error that is thrown when an instance is attempted
+	// to be stopped but is found to be not running
+	ErrNotRunning = errors.New("Not running")
 )
 
 // Client is a gcs client
@@ -64,7 +68,7 @@ func (c *Client) Status(project, zone, instanceID string) (string, error) {
 	return i.Status, nil
 }
 
-// Start a instance if it's not already running
+// Start an instance if it's not already running
 func (c *Client) Start(project, zone, instanceID string) error {
 	_, comp, err := c.getClient()
 	if err != nil {
@@ -82,6 +86,28 @@ func (c *Client) Start(project, zone, instanceID string) error {
 	}
 
 	sr := comp.Instances.Start(project, zone, instanceID)
+	_, err = sr.Do()
+	return err
+}
+
+// Stop an instance
+func (c *Client) Stop(project, zone, instanceID string) error {
+	_, comp, err := c.getClient()
+	if err != nil {
+		return err
+	}
+
+	gr := comp.Instances.Get(project, zone, instanceID)
+	i, err := gr.Do()
+	if err != nil {
+		return err
+	}
+
+	if i.Status != "RUNNING" {
+		return ErrNotRunning
+	}
+
+	sr := comp.Instances.Stop(project, zone, instanceID)
 	_, err = sr.Do()
 	return err
 }

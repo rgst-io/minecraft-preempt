@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gopkg.in/yaml.v2"
 )
@@ -26,6 +27,9 @@ type ProxyConfig struct {
 
 		// Version of the server
 		Version string `yaml:"textVersion"`
+
+		// ShutDownAfter this amount of time has passed since the last user left
+		ShutDownAfter time.Duration `yaml:"shutDownAfter"`
 	} `yaml:"server"`
 
 	// Instance is a GCP instance
