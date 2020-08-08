@@ -29,7 +29,9 @@ jobs:
         run: |-
           git checkout -b main
       - name: Release
-        run: yarn semantic-release --dry-run
+        run: |-
+          export GITHUB_EVENT_NAME=push 
+          yarn semantic-release --dry-run
 
   release:
     name: Release
