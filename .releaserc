@@ -8,5 +8,8 @@
     ["@semantic-release/github", {
       "assets": ["dist/*.tar.gz", "dist/checksums.txt"]
     }]
-  ]
+  ],
+  "branches": [{
+    "name": "main"
+  }]
 }
