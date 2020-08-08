@@ -25,12 +25,10 @@ jobs:
         run: go version && node --version
       - name: Install Dependencies
         run: NODE_ENV=development yarn
-      - name: Setup Mock
-        run: |-
-          git checkout -b main
       - name: Release
         run: |-
-          export GITHUB_EVENT_NAME=push 
+          export GITHUB_EVENT_NAME=push
+          git checkout -b main
           yarn semantic-release --dry-run
 
   release:
