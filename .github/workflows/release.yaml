@@ -7,6 +7,30 @@ on:
   pull_request:
 
 jobs:
+  release-dryrun:
+    name: Release (Dry-run)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Setup Golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: "^1.14"
+      - name: Environment Details
+        run: go version && node --version
+      - name: Install Dependencies
+        run: NODE_ENV=development yarn
+      - name: Setup Mock
+        run: |-
+          git checkout -b main
+      - name: Release
+        run: ./node_modules/.bin/semantic-release --dry-run
+
   release:
     name: Release
     runs-on: ubuntu-latest
