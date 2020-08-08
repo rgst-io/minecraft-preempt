@@ -111,10 +111,6 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(conf.Server.ShutDownAfter)
-
-	return
-
 	google := instance.NewClient()
 
 	// Listen for incoming connections.
