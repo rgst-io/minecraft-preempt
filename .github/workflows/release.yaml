@@ -22,7 +22,7 @@ jobs:
         with:
           go-version: "^1.14"
       - name: Install Dependencies
-        run: NODE_ENV=development yarn
+        run: NODE_ENV=development yarn --frozen-lockfile
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,7 +59,7 @@ jobs:
         with:
           go-version: "^1.14"
       - name: Install Dependencies
-        run: NODE_ENV=development yarn
+        run: NODE_ENV=development yarn --frozen-lockfile
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
