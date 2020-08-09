@@ -80,7 +80,7 @@ func handle(ctx context.Context, conn minecraft.Conn, s *config.ServerConfig, in
 
 		c.SendStatus(status)
 	case PlayerLogin:
-		glog.Infof("starting proxy to remote '%s' for '%s'", fmt.Sprintf("%s:%d", s.Hostname, s.Port), conn.Socket.RemoteAddr())
+		glog.Infof("starting proxy: '%s' <-> '%s'", fmt.Sprintf("%s:%d", s.Hostname, s.Port), conn.Socket.RemoteAddr())
 
 		serverDisconnectPacket := pk.Packet{
 			ID: 0x00,
@@ -120,7 +120,7 @@ func handle(ctx context.Context, conn minecraft.Conn, s *config.ServerConfig, in
 			return
 		}
 
-		glog.Infof("opening connection to '%s:%d'", s.Hostname, s.Port)
+		glog.V(3).Infof("opening connection to '%s:%d'", s.Hostname, s.Port)
 		rconn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", s.Hostname, s.Port))
 		if err != nil {
 			glog.Errorf("failed to open connection to remote: %v", err)
@@ -136,12 +136,14 @@ func handle(ctx context.Context, conn minecraft.Conn, s *config.ServerConfig, in
 			pk.Byte(2),
 		)
 
+		// we need to send a handshake packet to the remote server
+		// since we consumed the clients. We could potentially just
+		// "replay" the one sent by the client connecting to us
+		// instead.
 		if _, err = rconn.Write(handshake.Pack(0)); err != nil {
 			glog.Errorf("failed to send created handshake: %v", err)
 			return
 		}
-
-		glog.Infof("optimistically sent handshake to remote")
 
 		go func() {
 			_, err := io.Copy(conn.Socket, rconn)
