@@ -19,6 +19,10 @@ import (
 	"github.com/golang/glog"
 )
 
+var (
+	configPath = flag.String("configPath", "config/config.yaml", "Configuration File")
+)
+
 // Cached last status of the server
 var (
 	cachedStatus = cloud.StatusUnknown
@@ -171,7 +175,7 @@ func main() {
 	flag.Set("v", "2")
 	flag.Parse()
 
-	conf, err := config.LoadProxyConfig()
+	conf, err := config.LoadProxyConfig(*configPath)
 	if err != nil {
 		glog.Fatalf("failed to load config: %v", err)
 	}
