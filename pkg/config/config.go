@@ -2,9 +2,8 @@ package config
 
 import (
 	"io/ioutil"
-	"os"
-	"path/filepath"
 
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -58,18 +57,12 @@ type DockerConfig struct {
 }
 
 // LoadProxyConfig loads a proxy configuration file
-func LoadProxyConfig() (*ProxyConfig, error) {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+func LoadProxyConfig(path string) (*ProxyConfig, error) {
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
-	}
-
-	b, err := ioutil.ReadFile(filepath.Join(dir, "../config/config.yaml"))
-	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to read config file")
 	}
 
 	var conf *ProxyConfig
-	err = yaml.Unmarshal(b, &conf)
-	return conf, err
+	return conf, errors.Wrap(yaml.Unmarshal(b, &conf), "failed to parse config as yaml")
 }
