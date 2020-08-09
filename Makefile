@@ -1,6 +1,6 @@
 # go option
 GO         ?= go
-PKG        := go mod vendor
+PKG        := go mod download
 LDFLAGS    := -w -s
 GOFLAGS    :=
 TAGS       := 
