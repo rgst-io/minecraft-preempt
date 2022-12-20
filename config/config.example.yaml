@@ -20,6 +20,8 @@ server:
   hostname: 127.0.0.1
   port: 25566
 
-  # Get from here: https://wiki.vg/Protocol_History
-  protocolVersion: 578
-  textVersion: 1.15.2
+  # Get from here: https://wiki.vg/Protocol_History, or
+  # from the status proxy
+  protocolVersion: 760
+  textVersion: 1.19.2
+listenAddress: 127.0.0.1:25565

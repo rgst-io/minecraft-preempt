@@ -4,12 +4,12 @@ A lightweight golang application to start your preemptible minecraft server when
 
 ## Planned Features
 
-  * [ ] Turn off server when no users are detected for X time
+- [ ] Turn off server when no users are detected for X time
 
 ## Supported Clouds
 
- * `gcp`
- * `docker`
+- `gcp`
+- `docker`
 
 ## Usage
 

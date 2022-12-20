@@ -1,10 +1,10 @@
 package config
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -16,6 +16,9 @@ type Cloud string
 
 // ProxyConfig is a configuration file for the proxy
 type ProxyConfig struct {
+	// ListenAddress is the address to listen on (the proxy)
+	ListenAddress string `yaml:"listenAddress"`
+
 	// The Cloud this instance is in
 	Cloud       Cloud         `yaml:"cloud"`
 	Server      *ServerConfig `yaml:"server"`
@@ -58,7 +61,7 @@ type DockerConfig struct {
 
 // LoadProxyConfig loads a proxy configuration file
 func LoadProxyConfig(path string) (*ProxyConfig, error) {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read config file")
 	}

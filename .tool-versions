@@ -1,2 +1,4 @@
-golang 1.14
-github.com/goreleaser/goreleaser v0.141.0
+golang 1.19.4
+nodejs 19.2.0
+goreleaser 1.13.1
+golangci-lint 1.50.1

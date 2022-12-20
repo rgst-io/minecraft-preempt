@@ -1,4 +1,4 @@
-package instance
+package gcp
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/jaredallard/minecraft-preempt/pkg/cloud"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -33,7 +34,7 @@ func NewClient(ctx context.Context, project, zone string) (*Client, error) {
 		return nil, err
 	}
 
-	comp, err := compute.New(client)
+	comp, err := compute.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
 	}

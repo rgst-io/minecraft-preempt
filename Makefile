@@ -20,7 +20,7 @@ dep:
 
 .PHONY: build
 build:
-	GO111MODULE=on CGO_ENABLED=1 $(GO) build -o $(BINDIR)/ -v $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' ./
+	GO111MODULE=on CGO_ENABLED=0 $(GO) build -o $(BINDIR)/ -v $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' ./
 
 .PHONY: release
 release:
