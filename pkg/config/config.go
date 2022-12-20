@@ -18,6 +18,7 @@ package config
 import (
 	"os"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
@@ -76,11 +77,17 @@ type DockerConfig struct {
 
 // LoadProxyConfig loads a proxy configuration file
 func LoadProxyConfig(path string) (*ProxyConfig, error) {
-	b, err := os.ReadFile(path)
+	f, err := os.Open(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to read config file")
+		return nil, errors.Wrap(err, "failed to open config file")
 	}
 
-	var conf *ProxyConfig
-	return conf, errors.Wrap(yaml.Unmarshal(b, &conf), "failed to parse config as yaml")
+	var conf ProxyConfig
+	if err := yaml.NewDecoder(f).Decode(&conf); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal config file")
+	}
+	if err := envconfig.Process("minecraft_preempt", &conf); err != nil {
+		return nil, errors.Wrap(err, "failed to load config from env")
+	}
+	return &conf, nil
 }
