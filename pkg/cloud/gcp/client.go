@@ -20,6 +20,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/golang/glog"
 	"github.com/jaredallard/minecraft-preempt/pkg/cloud"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
@@ -75,7 +76,12 @@ func (c *Client) Status(ctx context.Context, instanceID string) (cloud.ProviderS
 	st := cloud.ProviderStatus(i.Status)
 	switch st {
 	case cloud.StatusRunning, cloud.StatusStarting, cloud.StatusStopping, cloud.StatusStopped:
+	case "TERMINATED":
+		// Terminated is a special case, it's not really stopped
+		// but can be treated as such
+		st = cloud.StatusStopped
 	default:
+		glog.Info("Unknown status: ", i.Status)
 		st = cloud.StatusUnknown
 	}
 
