@@ -26,7 +26,7 @@ build:
 release:
 	@git tag -d "$(APP_VERSION)" >&2 || true
 	@git tag "$(APP_VERSION)" >&2
-	@./scripts/gobin.sh github.com/goreleaser/goreleaser release --skip-publish --rm-dist
+	@goreleaser release --skip-publish --rm-dist
 	@git tag -d "$(APP_VERSION)" >&2
 	@echo "$(APP_VERSION)" > dist/VERSION
 
