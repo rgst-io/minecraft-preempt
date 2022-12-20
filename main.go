@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/function61/gokit/io/bidipipe"
 	"github.com/golang/glog"
 
@@ -68,7 +67,6 @@ func sendStatus(sconf *config.ServerConfig, mc *minecraft.Client) error {
 			status.Description.Text = "Server is online, but failed to proxy status"
 		} else {
 			status = newStatus
-			glog.Info("Returning status from server: ", spew.Sdump(status))
 		}
 	case cloud.StatusStarting:
 		status.Description.Text = "Server is starting, please wait!"
@@ -125,7 +123,7 @@ func handle(ctx context.Context, conn mcnet.Conn, s *config.ServerConfig, instan
 		}
 		return
 	case PlayerLogin:
-		glog.Infof("Session received from %q", conn.Socket.RemoteAddr())
+		glog.Infof("Starting proxy session with %q", conn.Socket.RemoteAddr())
 
 		// start the instance, if needed
 		switch cachedStatus {
