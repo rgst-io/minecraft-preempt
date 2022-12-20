@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/function61/gokit/io/bidipipe"
 	"github.com/golang/glog"
 
@@ -44,6 +46,7 @@ func usage() {
 }
 
 func sendStatus(sconf *config.ServerConfig, mc *minecraft.Client) error {
+	glog.Info("Handling status request")
 	status := &minecraft.Status{
 		Version: &minecraft.StatusVersion{
 			Name:     sconf.Version,
@@ -65,7 +68,6 @@ func sendStatus(sconf *config.ServerConfig, mc *minecraft.Client) error {
 			status.Description.Text = "Server is online, but failed to proxy status"
 		} else {
 			status = newStatus
-			glog.Info("Returning status from server: ", spew.Sdump(status))
 		}
 	case cloud.StatusStarting:
 		status.Description.Text = "Server is starting, please wait!"
@@ -78,46 +80,58 @@ func sendStatus(sconf *config.ServerConfig, mc *minecraft.Client) error {
 	return mc.SendStatus(status)
 }
 
+// sendDisconnect sends a disconnect packet to the client
+func sendDisconnect(mc *minecraft.Client, reason string) error {
+	disconnect := map[string]interface{}{
+		"translate": "chat.type.text",
+		"with": []interface{}{
+			map[string]interface{}{
+				"text": reason,
+			},
+		},
+	}
+
+	b, err := json.Marshal(disconnect)
+	if err != nil {
+		return err
+	}
+
+	return mc.WritePacket(pk.Marshal(0x00, pk.String(string(b))))
+}
+
 // handle handles minecraft connections
 func handle(ctx context.Context, conn mcnet.Conn, s *config.ServerConfig, instanceID string, cld cloud.Provider) {
-	c := minecraft.Client{Conn: &conn}
+	c := &minecraft.Client{Conn: &conn}
 	defer c.Close()
 
 	nextState, originalHandshake, err := c.Handshake()
 	if err != nil {
-		glog.Errorf("handshake failed: %v", err)
+		// don't log EOF
+		if !errors.Is(err, io.EOF) {
+			glog.Errorf("handshake failed: %v", err)
+		}
 		return
 	}
-	glog.Infof("Read handshake, next state: %d", nextState)
 
 	switch nextState {
 	default:
 		glog.Errorf("unknown next state: %d", nextState)
 		return
 	case CheckState:
-		if err := sendStatus(s, &c); err != nil {
+		if err := sendStatus(s, c); err != nil {
 			glog.Errorf("failed to send status: %v", err)
 		}
 		return
 	case PlayerLogin:
-		glog.Infof("starting proxy: '%s' <-> '%s'", fmt.Sprintf("%s:%d", s.Hostname, s.Port), conn.Socket.RemoteAddr())
+		glog.Infof("Starting proxy session with %q", conn.Socket.RemoteAddr())
 
-		serverDisconnectPacket := pk.Marshal(0x00, pk.String(fmt.Sprintf(`
-			{
-				"translate": "chat.type.text",
-				"with": [{
-					"text": "Server is currently being launched. (Status: %s)"
-				}]
-			}
-		`, cachedStatus)))
-
-		// start the instance
+		// start the instance, if needed
 		switch cachedStatus {
 		case cloud.StatusRunning:
-			// do nothing
+			// do nothing, we'll just proxy the connection
 		case cloud.StatusStopped:
 			glog.Infof("starting server ...")
-			if err := c.WritePacket(serverDisconnectPacket); err != nil {
+			if err := sendDisconnect(c, "Server is starting"); err != nil {
 				glog.Warningf("failed to send starting packet: %v", err)
 			}
 
@@ -130,14 +144,13 @@ func handle(ctx context.Context, conn mcnet.Conn, s *config.ServerConfig, instan
 			cachedStatus = cloud.StatusStarting
 			return
 		default: // not running or stopped, so we're starting or stopping
-			glog.Infof("server is status '%s', waiting ...", cachedStatus)
-			if err := c.WritePacket(serverDisconnectPacket); err != nil {
+			if err := sendDisconnect(c, fmt.Sprintf("Waiting for server to start (Status: %q)", cachedStatus)); err != nil {
 				glog.Warningf("failed to send starting packet: %v", err)
 			}
 			return
 		}
 
-		glog.Infof("opening connection to '%s:%d'", s.Hostname, s.Port)
+		glog.Infof("Creating connection to '%s:%d'", s.Hostname, s.Port)
 		rconn, err := mcnet.DialMC(s.Hostname + ":" + strconv.Itoa(int(s.Port)))
 		if err != nil {
 			glog.Errorf("failed to open connection to remote: %v", err)
@@ -151,6 +164,7 @@ func handle(ctx context.Context, conn mcnet.Conn, s *config.ServerConfig, instan
 			glog.Errorf("failed to write handshake to remote: %v", err)
 		}
 
+		glog.Info("Piping client <-> remote")
 		if err := bidipipe.Pipe(
 			bidipipe.WithName("client", conn.Socket),
 			bidipipe.WithName("remote", rconn),
@@ -211,11 +225,13 @@ func main() {
 	// update the cached status every 5 minutes
 	go func() {
 		for {
+			glog.Info("Polling server status ...")
 			status, err := cloudProvider.Status(ctx, instanceID)
 			if err != nil {
 				glog.Warningf("failed to get parent instance status: %v", err)
 				return
 			}
+			glog.Info("Server status: ", status)
 
 			if cachedStatus != status {
 				glog.Infof("server transitioned from '%s' -> '%s'", cachedStatus, status)
