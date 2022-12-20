@@ -46,6 +46,7 @@ func usage() {
 }
 
 func sendStatus(sconf *config.ServerConfig, mc *minecraft.Client) error {
+	glog.Info("Handling status request")
 	status := &minecraft.Status{
 		Version: &minecraft.StatusVersion{
 			Name:     sconf.Version,
@@ -111,7 +112,6 @@ func handle(ctx context.Context, conn mcnet.Conn, s *config.ServerConfig, instan
 		}
 		return
 	}
-	glog.Infof("Read handshake, next state: %d", nextState)
 
 	switch nextState {
 	default:
