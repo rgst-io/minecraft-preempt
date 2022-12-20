@@ -8,6 +8,7 @@ require (
 	github.com/docker/docker v20.10.22+incompatible
 	github.com/function61/gokit v0.0.0-20221028200019-a521487ce841
 	github.com/golang/glog v1.0.0
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pkg/errors v0.9.1
 	golang.org/x/oauth2 v0.3.0
 	google.golang.org/api v0.105.0
