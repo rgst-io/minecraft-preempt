@@ -11,16 +11,9 @@ jobs:
     name: Release (Dry-run)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - name: Setup Golang
-        uses: actions/setup-go@v2
-        with:
-          go-version: "^1.14"
+      - uses: actions/checkout@v3
+      - name: Install Tool Versions
+        uses: asdf-vm/actions/install@v1
       - name: Install Dependencies
         run: NODE_ENV=development yarn --frozen-lockfile
       - name: Release
@@ -34,16 +27,6 @@ jobs:
           fi
 
           yarn semantic-release --dry-run
-          echo "::set-env name=VERSION::$(cat dist/VERSION)"
-      - name: Notify of Version Change
-        uses: unsplash/comment-on-pr@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          msg: "This will be released as: ${{ env.VERSION }}"
-          check_for_duplicate_msg: true
-        if: github.event_name == 'pull_request' && env.VERSION != ''
-
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -51,16 +34,9 @@ jobs:
     needs:
       - release-dryrun
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - name: Setup Golang
-        uses: actions/setup-go@v2
-        with:
-          go-version: "^1.14"
+      - uses: actions/checkout@v3
+      - name: Install Tool Versions
+        uses: asdf-vm/actions/install@v1
       - name: Install Dependencies
         run: NODE_ENV=development yarn --frozen-lockfile
       - name: Release

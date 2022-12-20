@@ -5,6 +5,6 @@ services:
     environment:
       EULA: "true"
       TZ: "America/Los_Angeles"
-      VERSION: "1.15.2"
+      VERSION: "1.19.2"
     ports:
       - 25566:25565

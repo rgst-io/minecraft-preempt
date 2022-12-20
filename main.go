@@ -4,19 +4,23 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io"
-	"net"
 	"os"
+	"strconv"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/function61/gokit/io/bidipipe"
+	"github.com/golang/glog"
+
+	mcnet "github.com/Tnze/go-mc/net"
 	pk "github.com/Tnze/go-mc/net/packet"
+
 	"github.com/jaredallard/minecraft-preempt/pkg/cloud"
 	"github.com/jaredallard/minecraft-preempt/pkg/cloud/docker"
-	gcp "github.com/jaredallard/minecraft-preempt/pkg/cloud/gcp"
+	"github.com/jaredallard/minecraft-preempt/pkg/cloud/gcp"
+
 	"github.com/jaredallard/minecraft-preempt/pkg/config"
 	"github.com/jaredallard/minecraft-preempt/pkg/minecraft"
-
-	"github.com/golang/glog"
 )
 
 var (
@@ -39,21 +43,11 @@ func usage() {
 	os.Exit(2)
 }
 
-// handle handles minecraft connections
-func handle(ctx context.Context, conn minecraft.Conn, s *config.ServerConfig, instanceID string, cld cloud.Provider) {
-	defer conn.Close()
-	c := minecraft.Client{Conn: conn}
-
-	nextState, err := c.Handshake()
-	if err != nil {
-		glog.Errorf("handshake failed: %v", err)
-		return
-	}
-
+func sendStatus(sconf *config.ServerConfig, mc *minecraft.Client) error {
 	status := &minecraft.Status{
 		Version: &minecraft.StatusVersion{
-			Name:     s.Version,
-			Protocol: int(s.ProtocolVersion),
+			Name:     sconf.Version,
+			Protocol: int(sconf.ProtocolVersion),
 		},
 		Players: &minecraft.StatusPlayers{
 			Max:    0,
@@ -64,101 +58,103 @@ func handle(ctx context.Context, conn minecraft.Conn, s *config.ServerConfig, in
 		},
 	}
 
-	switch nextState {
-	case CheckState:
-		switch cachedStatus {
-		case cloud.StatusRunning:
-			newStatus, err := minecraft.GetServerStatus(s.Hostname, s.Port)
-			if err != nil {
-				status.Description.Text = "Server is online, but failed to proxy status"
-			} else {
-				status = newStatus
-			}
-		case cloud.StatusStarting:
-			status.Description.Text = "Server is starting, please wait!"
-		case cloud.StatusStopping:
-			status.Description.Text = "Server is stopping, please wait to start it!"
-		default:
-			status.Description.Text = "Server is hibernated. Join to start it."
+	switch cachedStatus {
+	case cloud.StatusRunning:
+		newStatus, err := minecraft.GetServerStatus(sconf.Hostname, sconf.Port)
+		if err != nil {
+			status.Description.Text = "Server is online, but failed to proxy status"
+		} else {
+			status = newStatus
+			glog.Info("Returning status from server: ", spew.Sdump(status))
 		}
+	case cloud.StatusStarting:
+		status.Description.Text = "Server is starting, please wait!"
+	case cloud.StatusStopping:
+		status.Description.Text = "Server is stopping, please wait to start it!"
+	default:
+		status.Description.Text = "Server is hibernated. Join to start it."
+	}
 
-		c.SendStatus(status)
+	return mc.SendStatus(status)
+}
+
+// handle handles minecraft connections
+func handle(ctx context.Context, conn mcnet.Conn, s *config.ServerConfig, instanceID string, cld cloud.Provider) {
+	c := minecraft.Client{Conn: &conn}
+	defer c.Close()
+
+	nextState, originalHandshake, err := c.Handshake()
+	if err != nil {
+		glog.Errorf("handshake failed: %v", err)
+		return
+	}
+	glog.Infof("Read handshake, next state: %d", nextState)
+
+	switch nextState {
+	default:
+		glog.Errorf("unknown next state: %d", nextState)
+		return
+	case CheckState:
+		if err := sendStatus(s, &c); err != nil {
+			glog.Errorf("failed to send status: %v", err)
+		}
+		return
 	case PlayerLogin:
 		glog.Infof("starting proxy: '%s' <-> '%s'", fmt.Sprintf("%s:%d", s.Hostname, s.Port), conn.Socket.RemoteAddr())
 
-		serverDisconnectPacket := pk.Packet{
-			ID: 0x00,
-			Data: pk.String(fmt.Sprintf(`
-					{
-						"translate": "chat.type.text",
-						"with": [{
-							"text": "Server is currently being launched. (Status: %s)"
-						}]
-					}
-				`, cachedStatus)).Encode(),
-		}
+		serverDisconnectPacket := pk.Marshal(0x00, pk.String(fmt.Sprintf(`
+			{
+				"translate": "chat.type.text",
+				"with": [{
+					"text": "Server is currently being launched. (Status: %s)"
+				}]
+			}
+		`, cachedStatus)))
 
 		// start the instance
-		if cachedStatus == cloud.StatusStopped {
+		switch cachedStatus {
+		case cloud.StatusRunning:
+			// do nothing
+		case cloud.StatusStopped:
 			glog.Infof("starting server ...")
-			err := c.WritePacket(serverDisconnectPacket)
-			if err != nil {
+			if err := c.WritePacket(serverDisconnectPacket); err != nil {
 				glog.Warningf("failed to send starting packet: %v", err)
 			}
 
 			if err := cld.Start(ctx, instanceID); err != nil {
 				glog.Errorf("failed to start instance: %v", err)
-			} else {
-				cachedStatus = cloud.StatusStarting
+				return
 			}
-			return
-		}
 
-		if cachedStatus != cloud.StatusRunning {
-			// tell the client we're waiting for the server to start
+			// update the status
+			cachedStatus = cloud.StatusStarting
+			return
+		default: // not running or stopped, so we're starting or stopping
 			glog.Infof("server is status '%s', waiting ...", cachedStatus)
-			err := c.WritePacket(serverDisconnectPacket)
-			if err != nil {
+			if err := c.WritePacket(serverDisconnectPacket); err != nil {
 				glog.Warningf("failed to send starting packet: %v", err)
 			}
 			return
 		}
 
-		glog.V(3).Infof("opening connection to '%s:%d'", s.Hostname, s.Port)
-		rconn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", s.Hostname, s.Port))
+		glog.Infof("opening connection to '%s:%d'", s.Hostname, s.Port)
+		rconn, err := mcnet.DialMC(s.Hostname + ":" + strconv.Itoa(int(s.Port)))
 		if err != nil {
 			glog.Errorf("failed to open connection to remote: %v", err)
 			return
 		}
 		defer rconn.Close()
 
-		handshake := pk.Marshal(
-			0x00,
-			pk.VarInt(c.ProtocolVersion),
-			pk.String(s.Hostname),
-			pk.UnsignedShort(s.Port),
-			pk.Byte(2),
-		)
-
-		// we need to send a handshake packet to the remote server
-		// since we consumed the clients. We could potentially just
-		// "replay" the one sent by the client connecting to us
-		// instead.
-		if _, err = rconn.Write(handshake.Pack(0)); err != nil {
-			glog.Errorf("failed to send created handshake: %v", err)
-			return
+		// send the original handshake packet then pipe the rest
+		glog.Info("Replaying original handshake packet")
+		if err := rconn.WritePacket(*originalHandshake); err != nil {
+			glog.Errorf("failed to write handshake to remote: %v", err)
 		}
 
-		go func() {
-			_, err := io.Copy(conn.Socket, rconn)
-			if err != nil {
-				glog.Errorf("failed to write to client from remote: %v", err)
-				return
-			}
-		}()
-
-		_, err = io.Copy(rconn, conn.ByteReader)
-		if err != nil {
+		if err := bidipipe.Pipe(
+			bidipipe.WithName("client", conn.Socket),
+			bidipipe.WithName("remote", rconn),
+		); err != nil {
 			glog.Errorf("failed to write to remote from client: %v", err)
 			return
 		}
@@ -166,13 +162,16 @@ func handle(ctx context.Context, conn minecraft.Conn, s *config.ServerConfig, in
 }
 
 func main() {
-	// TODO(jaredallard): implement context cancellation
 	ctx, cancel := context.WithCancel(context.Background())
-	_ = cancel
+	defer cancel()
 
 	flag.Usage = usage
-	flag.Set("logtostderr", "true")
-	flag.Set("v", "2")
+	if err := flag.Set("logtostderr", "true"); err != nil {
+		glog.Fatalf("failed to set logtostderr: %v", err)
+	}
+	if err := flag.Set("v", "2"); err != nil {
+		glog.Fatalf("failed to set v: %v", err)
+	}
 	flag.Parse()
 
 	conf, err := config.LoadProxyConfig(*configPath)
@@ -202,7 +201,8 @@ func main() {
 	}
 
 	// Listen for incoming connections.
-	l, err := minecraft.ListenMC("0.0.0.0:25565")
+	glog.Infof("Creating proxy on '%s'", conf.ListenAddress)
+	l, err := minecraft.ListenMC(conf.ListenAddress)
 	if err != nil {
 		glog.Fatalf("failed to start proxy: %v\n", err)
 	}

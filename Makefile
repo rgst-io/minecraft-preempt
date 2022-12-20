@@ -20,13 +20,13 @@ dep:
 
 .PHONY: build
 build:
-	GO111MODULE=on CGO_ENABLED=1 $(GO) build -o $(BINDIR)/ -v $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' ./
+	GO111MODULE=on CGO_ENABLED=0 $(GO) build -o $(BINDIR)/ -v $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' ./
 
 .PHONY: release
 release:
 	@git tag -d "$(APP_VERSION)" >&2 || true
 	@git tag "$(APP_VERSION)" >&2
-	@./scripts/gobin.sh github.com/goreleaser/goreleaser release --skip-publish --rm-dist
+	@goreleaser release --skip-publish --rm-dist
 	@git tag -d "$(APP_VERSION)" >&2
 	@echo "$(APP_VERSION)" > dist/VERSION
 

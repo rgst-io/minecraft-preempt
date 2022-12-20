@@ -1,26 +1,44 @@
+// Copyright (C) 2022 Jared Allard <jared@rgst.io>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 package minecraft
 
 import (
 	"encoding/json"
 	"fmt"
 
+	mcnet "github.com/Tnze/go-mc/net"
 	pk "github.com/Tnze/go-mc/net/packet"
+	"github.com/pkg/errors"
 )
 
 // Client is a minecraft protocol aware connection somewhat
 type Client struct {
-	Conn
+	*mcnet.Conn
 
 	ProtocolVersion int32
 }
 
-func (c *Client) Handshake() (nextState int32, err error) {
-	p, err := c.ReadPacket()
-	if err != nil {
-		return -1, err
+// Handshake reads the handshake packet and returns the next state
+func (c *Client) Handshake() (nextState int32, original *pk.Packet, err error) {
+	var p pk.Packet
+	if err := c.ReadPacket(&p); err != nil {
+		return -1, nil, err
 	}
 	if p.ID != 0 {
-		return -1, fmt.Errorf("packet ID 0x%X is not handshake", p.ID)
+		return -1, nil, fmt.Errorf("packet ID 0x%X is not handshake", p.ID)
 	}
 
 	var (
@@ -31,30 +49,33 @@ func (c *Client) Handshake() (nextState int32, err error) {
 		(*pk.VarInt)(&c.ProtocolVersion),
 		&sid, &spt,
 		(*pk.VarInt)(&nextState)); err != nil {
-		return -1, err
+		return -1, nil, err
 	}
 
-	return nextState, nil
+	return nextState, &p, nil
 }
 
-func (c *Client) SendStatus(status *Status) {
+// SendStatus sends status request and ping packets to the client
+func (c *Client) SendStatus(status *Status) error {
 	for i := 0; i < 2; i++ {
-		p, err := c.ReadPacket()
-		if err != nil {
+		var p pk.Packet
+		if err := c.ReadPacket(&p); err != nil {
 			break
 		}
 
+		var err error
 		switch p.ID {
-		case 0x00:
-			b, err := json.Marshal(status)
-			if err == nil {
-				c.WritePacket(pk.Packet{
-					ID:   0x00,
-					Data: pk.String(b).Encode(),
-				})
+		case 0x00: // Status Request
+			b, jerr := json.Marshal(status)
+			if jerr == nil {
+				err = c.WritePacket(pk.Marshal(p.ID, pk.String(b)))
 			}
-		case 0x01:
-			c.WritePacket(p)
+		case 0x01: // Ping
+			err = c.WritePacket(p)
+		}
+		if err != nil {
+			return errors.Wrapf(err, "failed to send %d packet", p.ID)
 		}
 	}
+	return nil
 }
