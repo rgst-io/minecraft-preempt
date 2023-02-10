@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/Tnze/go-mc v1.19.2
 	github.com/davecgh/go-spew v1.1.1
-	github.com/docker/docker v20.10.22+incompatible
+	github.com/docker/docker/v23 v23.0.1+incompatible
 	github.com/function61/gokit v0.0.0-20221028200019-a521487ce841
 	github.com/golang/glog v1.0.0
 	github.com/kelseyhightower/envconfig v1.4.0
