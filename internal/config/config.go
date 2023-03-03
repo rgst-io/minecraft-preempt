@@ -96,6 +96,10 @@ func applyDefaults(conf *ProxyConfig) {
 
 // validateConfig validates the configuration is valid
 func validateConfig(conf *ProxyConfig) error {
+	if len(conf.Servers) == 0 {
+		return fmt.Errorf("no servers defined")
+	}
+
 	for i, s := range conf.Servers {
 		if s.Name == "" {
 			return fmt.Errorf("server %d has no name", i)

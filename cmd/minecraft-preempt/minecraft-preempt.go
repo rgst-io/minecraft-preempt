@@ -21,6 +21,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -28,24 +29,36 @@ import (
 	"time"
 
 	"github.com/charmbracelet/log"
+	"github.com/spf13/cobra"
 
 	"github.com/jaredallard/minecraft-preempt/internal/config"
 )
 
-// main is the entrypoint for the proxy
-func main() {
-	exitCode := 0
-	defer func() {
-		os.Exit(exitCode)
-	}()
+// rootCmd is the root command used by cobra
+var rootCmd = &cobra.Command{
+	Use: "minecraft-preempt",
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
+	Short: "minecraft-preempt is a proxy for minecraft servers that can start and stop them",
+	Long: `minecraft-preempt is a proxy for minecraft servers that can start and stop them based on ` +
+		`the number of connections to them.` + "\n" + `This is useful for running a large number of servers ` +
+		`on a single machine, and only having them running when needed.`,
+	Run: entrypoint,
+}
+
+// entrypoint is the entrypoint for the root command
+func entrypoint(cmd *cobra.Command, args []string) {
+	ctx := cmd.Context()
 
 	log := log.New(log.WithCaller(), log.WithTimestamp())
 
+	confPath, err := cmd.Flags().GetString("config")
+	if err != nil {
+		log.Error("failed to get config path", "err", err)
+		return
+	}
+
 	// TODO: CLI framework to load this in
-	conf, err := config.LoadProxyConfig(`\\wsl.localhost\Ubuntu\home\jaredallard\Code\jaredallard\minecraft-preempt\config\config.example.yaml`)
+	conf, err := config.LoadProxyConfig(confPath)
 	if err != nil {
 		log.Error("failed to load config", "err", err)
 		return
@@ -89,6 +102,7 @@ func main() {
 	log.Info("Shutting down")
 
 	// create a new context with a 15 second timeout
+	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -101,4 +115,21 @@ func main() {
 	wg.Wait()
 
 	log.Info("Shutdown complete")
+}
+
+// main is the entrypoint for the proxy
+func main() {
+	exitCode := 0
+	defer func() {
+		os.Exit(exitCode)
+	}()
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	rootCmd.PersistentFlags().String("config", "", "config file")
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		exitCode = 1
+	}
 }
