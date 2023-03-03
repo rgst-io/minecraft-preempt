@@ -1,27 +1,7 @@
-# Cloud to use, must have the relevant cloudConfig block
-# filled out.
-cloud: docker
-cloudConfig:
-  gcp:
-    # GCP ONLY RIGHT NOW
-    # ID of your instance
-    instanceID: 3221088494815516132
-
-    # GCP Project
-    project: triton-ops
-
-    # GCP Zone
-    zone: us-west1-b
-
-  docker:
-    # Docker container to start / get the status of
-    containerID: fixme
-server:
-  hostname: 127.0.0.1
-  port: 25566
-
-  # Get from here: https://wiki.vg/Protocol_History, or
-  # from the status proxy
-  protocolVersion: 760
-  textVersion: 1.19.2
-listenAddress: 127.0.0.1:25565
+servers:
+  - name: development
+    docker:
+      containerID: mc
+    minecraft:
+      hostname: 127.0.0.1
+      port: 25566

@@ -16,50 +16,57 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
-	"github.com/golang/glog"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
 
+// This block contains all of the valid cloud providers
 var (
 	CloudGCP    Cloud = "gcp"
 	CloudDocker Cloud = "docker"
 )
 
+// Cloud is a cloud provider
 type Cloud string
 
 // ProxyConfig is a configuration file for the proxy
 type ProxyConfig struct {
-	// ListenAddress is the address to listen on (the proxy)
+	// Servers contains a list of all servers to proxy
+	Servers []ServerConfig `yaml:"servers"`
+}
+
+type ServerConfig struct {
+	// Name is a user friendly name for the server
+	Name string `yaml:"name"`
+
+	// ListenAddress is the address to listen on
 	ListenAddress string `yaml:"listenAddress"`
 
-	// The Cloud this instance is in
-	Cloud       Cloud         `yaml:"cloud"`
-	Server      *ServerConfig `yaml:"server"`
-	CloudConfig struct {
-		GCP    *GCPConfig    `yaml:"gcp"`
-		Docker *DockerConfig `yaml:"docker"`
-	} `yaml:"cloudConfig"`
+	// GCP is the GCP configuration block
+	GCP *GCPConfig `yaml:"gcp"`
+
+	// Docker is the Docker configuration block
+	Docker *DockerConfig `yaml:"docker"`
+
+	// Minecraft is the Minecraft configuration block
+	Minecraft MinecraftServerConfig `yaml:"minecraft"`
 }
 
 // Server configuration block
-type ServerConfig struct {
+type MinecraftServerConfig struct {
 	// Hostname of the remote server
 	Hostname string `yaml:"hostname"`
 
 	// Port of the remote server
 	Port uint `yaml:"port"`
-
-	// ProtocolVersion of the server
-	ProtocolVersion uint `yaml:"protocolVersion"`
-
-	// Version of the server
-	Version string `yaml:"textVersion"`
 }
 
+// GCPConfig is a configuration block for GCP
+// configuration
 type GCPConfig struct {
 	// InstanceID is the id of the GCP instance
 	InstanceID string `yaml:"instanceID"`
@@ -71,9 +78,39 @@ type GCPConfig struct {
 	Zone string `yaml:"zone"`
 }
 
+// DockerConfig is a configuration block for Docker
+// configuration
 type DockerConfig struct {
 	// ContainerID is the ID of the container to run
 	ContainerID string `yaml:"containerID"`
+}
+
+// applyDefaults applies default values to the configuration
+func applyDefaults(conf *ProxyConfig) {
+	for i := range conf.Servers {
+		if conf.Servers[i].ListenAddress == "" {
+			conf.Servers[i].ListenAddress = "0.0.0.0:25565"
+		}
+	}
+}
+
+// validateConfig validates the configuration is valid
+func validateConfig(conf *ProxyConfig) error {
+	for i, s := range conf.Servers {
+		if s.Name == "" {
+			return fmt.Errorf("server %d has no name", i)
+		}
+
+		if s.GCP != nil && s.Docker != nil {
+			return fmt.Errorf("server %q has both gcp and docker config", s.Name)
+		}
+
+		if s.GCP == nil && s.Docker == nil {
+			return fmt.Errorf("server %q has no gcp or docker config", s.Name)
+		}
+	}
+
+	return nil
 }
 
 // LoadProxyConfig loads a proxy configuration file
@@ -85,12 +122,16 @@ func LoadProxyConfig(path string) (*ProxyConfig, error) {
 		if err := yaml.NewDecoder(f).Decode(&conf); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal config file")
 		}
-	} else {
-		glog.Warningf("failed to open config file, falling back to env only: %v", err)
 	}
 
 	if err := envconfig.Process("minecraft_preempt", &conf); err != nil {
 		return nil, errors.Wrap(err, "failed to load config from env")
+	}
+
+	applyDefaults(&conf)
+
+	if err := validateConfig(&conf); err != nil {
+		return nil, errors.Wrap(err, "failed to validate config")
 	}
 
 	return &conf, nil

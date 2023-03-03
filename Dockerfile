@@ -3,4 +3,4 @@ FROM scratch
 ENTRYPOINT ["/usr/local/bin/minecraft-preempt"]
 
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY minecraft-prempt /usr/local/bin/
+COPY minecraft-preempt /usr/local/bin/

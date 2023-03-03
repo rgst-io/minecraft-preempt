@@ -2,10 +2,7 @@
 GO         ?= go
 PKG        := go mod download
 LDFLAGS    := -w -s
-GOFLAGS    :=
-TAGS       := 
 BINDIR     := $(CURDIR)/bin
-APP_VERSION := v0.0.0
 
 # Required for globs to work correctly
 SHELL=/bin/bash
@@ -20,16 +17,4 @@ dep:
 
 .PHONY: build
 build:
-	GO111MODULE=on CGO_ENABLED=0 $(GO) build -o $(BINDIR)/ -v $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)' ./
-
-.PHONY: release
-release:
-	@git tag -d "$(APP_VERSION)" >&2 || true
-	@git tag "$(APP_VERSION)" >&2
-	@goreleaser release --skip-publish --rm-dist
-	@git tag -d "$(APP_VERSION)" >&2
-	@echo "$(APP_VERSION)" > dist/VERSION
-
-.PHONY: fmt
-fmt:
-	goimports -w ./
+	CGO_ENABLED=0 $(GO) build -o $(BINDIR)/ -ldflags '$(LDFLAGS)' ./cmd/...

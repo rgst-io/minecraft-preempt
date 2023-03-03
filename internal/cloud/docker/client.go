@@ -19,19 +19,25 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/jaredallard/minecraft-preempt/internal/cloud"
 	"github.com/pkg/errors"
 )
 
+// Contains all of the error types for this package
 var (
+	// ErrNotStopped is an error that is thrown when an instance is attempted to be
+	// started but is found to be not stopped
 	ErrNotStopped = errors.New("not stopped")
 )
 
+// Client is a docker client
 type Client struct {
 	d dockerclient.APIClient
 }
 
+// NewClient creates a new client
 func NewClient() (*Client, error) {
 	c, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
 	if err != nil {
@@ -41,6 +47,7 @@ func NewClient() (*Client, error) {
 	return &Client{c}, nil
 }
 
+// Start starts a container
 func (c *Client) Start(ctx context.Context, containerID string) error {
 	cont, err := c.d.ContainerInspect(ctx, containerID)
 	if err != nil {
@@ -54,6 +61,7 @@ func (c *Client) Start(ctx context.Context, containerID string) error {
 	return c.d.ContainerStart(ctx, cont.ID, types.ContainerStartOptions{})
 }
 
+// Status returns the status of a container
 func (c *Client) Status(ctx context.Context, containerID string) (cloud.ProviderStatus, error) {
 	cont, err := c.d.ContainerInspect(ctx, containerID)
 	if err != nil {
@@ -72,4 +80,18 @@ func (c *Client) Status(ctx context.Context, containerID string) (cloud.Provider
 	}
 
 	return cloud.StatusUnknown, nil
+}
+
+// Stop stops a container
+func (c *Client) Stop(ctx context.Context, containerID string) error {
+	cont, err := c.d.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return err
+	}
+
+	if cont.State.Status == "exited" {
+		return ErrNotStopped
+	}
+
+	return c.d.ContainerStop(ctx, cont.ID, container.StopOptions{})
 }
