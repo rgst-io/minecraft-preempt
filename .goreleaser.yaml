@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+project_name: minecraft-preempt
+before:
+  hooks:
+    - go mod download
+builds:
+  - main: ./cmd/minecraft-preempt
+    env:
+      - CGO_ENABLED=0
+    goarch:
+      - amd64
+      - arm64
+    goos:
+      - linux
+      - windows
+      - darwin
+
+archives:
+  - format: tar.gz
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        format: zip
+dockers:
+  # amd64
+  - build_flag_templates:
+      - --platform=linux/amd64
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/jaredallard/{{ .ProjectName }}
+      - --label=org.opencontainers.image.source=https://github.com/jaredallard/{{ .ProjectName }}
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=GPL-3.0
+    image_templates:
+      - "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}-amd64"
+  # arm64
+  - goos: linux
+    goarch: arm64
+    build_flag_templates:
+      - --platform=linux/arm64
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/jaredallard/{{ .ProjectName }}
+      - --label=org.opencontainers.image.source=https://github.com/jaredallard/{{ .ProjectName }}
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=GPL-3.0
+    image_templates:
+      - "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}-arm64"
+docker_manifests:
+  - name_template: "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}-arm64"
+      - "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}-amd64"
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

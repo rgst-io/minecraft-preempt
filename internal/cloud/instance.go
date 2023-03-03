@@ -27,10 +27,14 @@ var (
 	StatusUnknown  ProviderStatus = "UNKNOWN"
 )
 
+// Provider is a cloud provider
 type Provider interface {
 	// Status fetches the status of a remote instance
 	Status(ctx context.Context, instanceID string) (ProviderStatus, error)
 
 	// Start starts a remote instance
 	Start(ctx context.Context, instanceID string) error
+
+	// Stop stops a remote instance
+	Stop(ctx context.Context, instanceID string) error
 }

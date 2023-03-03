@@ -31,6 +31,19 @@ type Client struct {
 	ProtocolVersion int32
 }
 
+// ClientState is the state of the client during
+// the handshake process
+type ClientState int
+
+const (
+	// ClientStateCheck is when a client is attempting to check the status
+	// of the server
+	ClientStateCheck ClientState = iota + 1
+	// ClientStatePlayerLogin is the state of the client when trying to login to
+	// the server
+	ClientStatePlayerLogin ClientState = iota + 1
+)
+
 // Handshake reads the handshake packet and returns the next state
 func (c *Client) Handshake() (nextState int32, original *pk.Packet, err error) {
 	var p pk.Packet
@@ -53,6 +66,25 @@ func (c *Client) Handshake() (nextState int32, original *pk.Packet, err error) {
 	}
 
 	return nextState, &p, nil
+}
+
+// SendDisconnect sends a disconnect packet to the client with the provided reason
+func (c *Client) SendDisconnect(reason string) error {
+	disconnect := map[string]interface{}{
+		"translate": "chat.type.text",
+		"with": []interface{}{
+			map[string]interface{}{
+				"text": reason,
+			},
+		},
+	}
+
+	b, err := json.Marshal(disconnect)
+	if err != nil {
+		return err
+	}
+
+	return c.WritePacket(pk.Marshal(0x00, pk.String(string(b))))
 }
 
 // SendStatus sends status request and ping packets to the client

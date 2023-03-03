@@ -20,8 +20,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/golang/glog"
-	"github.com/jaredallard/minecraft-preempt/pkg/cloud"
+	"github.com/jaredallard/minecraft-preempt/internal/cloud"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
@@ -35,7 +34,6 @@ var (
 
 // Client is a gcs client
 type Client struct {
-	context context.Context
 	gclient *http.Client
 	compute *compute.Service
 
@@ -56,7 +54,6 @@ func NewClient(ctx context.Context, project, zone string) (*Client, error) {
 	}
 
 	return &Client{
-		context: context.Background(),
 		gclient: client,
 		compute: comp,
 		project: project,
@@ -81,7 +78,6 @@ func (c *Client) Status(ctx context.Context, instanceID string) (cloud.ProviderS
 		// but can be treated as such
 		st = cloud.StatusStopped
 	default:
-		glog.Info("Unknown status: ", i.Status)
 		st = cloud.StatusUnknown
 	}
 
@@ -107,5 +103,11 @@ func (c *Client) Start(ctx context.Context, instanceID string) error {
 
 	sr := c.compute.Instances.Start(c.project, c.zone, instanceID)
 	_, err = sr.Do()
+	return err
+}
+
+// Stop a instance if it's not already stopped
+func (c *Client) Stop(ctx context.Context, instanceID string) error {
+	_, err := c.compute.Instances.Stop(c.project, c.zone, instanceID).Do()
 	return err
 }
