@@ -1,3 +1,21 @@
+// Copyright (C) 2023 Jared Allard <jared@rgst.io>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+// Package main implements a minecraft server proxy that
+// proxies connections to relevant servers, stopping and starting
+// them as needed.
 package main
 
 import (
@@ -8,21 +26,25 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
+	"github.com/charmbracelet/log"
+
 	"github.com/function61/gokit/io/bidipipe"
+	"github.com/getoutreach/gobox/pkg/async"
 	"github.com/golang/glog"
 
 	mcnet "github.com/Tnze/go-mc/net"
 	pk "github.com/Tnze/go-mc/net/packet"
 
-	"github.com/jaredallard/minecraft-preempt/pkg/cloud"
-	"github.com/jaredallard/minecraft-preempt/pkg/cloud/docker"
-	"github.com/jaredallard/minecraft-preempt/pkg/cloud/gcp"
-
-	"github.com/jaredallard/minecraft-preempt/pkg/config"
-	"github.com/jaredallard/minecraft-preempt/pkg/minecraft"
+	"github.com/jaredallard/minecraft-preempt/internal/cloud"
+	"github.com/jaredallard/minecraft-preempt/internal/cloud/docker"
+	"github.com/jaredallard/minecraft-preempt/internal/cloud/gcp"
+	"github.com/jaredallard/minecraft-preempt/internal/config"
+	"github.com/jaredallard/minecraft-preempt/internal/minecraft"
 )
 
 var (
@@ -38,12 +60,6 @@ const (
 	CheckState = iota + 1
 	PlayerLogin
 )
-
-func usage() {
-	fmt.Fprintf(os.Stderr, "usage: minecraft-preempt -stderrthreshold=[INFO|WARN|FATAL] -log_dir=[string]\n")
-	flag.PrintDefaults()
-	os.Exit(2)
-}
 
 func sendStatus(sconf *config.ServerConfig, mc *minecraft.Client) error {
 	glog.Info("Handling status request")
@@ -176,21 +192,21 @@ func handle(ctx context.Context, conn mcnet.Conn, s *config.ServerConfig, instan
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
+	exitCode := 0
+	defer func() {
+		os.Exit(exitCode)
+	}()
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	flag.Usage = usage
-	if err := flag.Set("logtostderr", "true"); err != nil {
-		glog.Fatalf("failed to set logtostderr: %v", err)
-	}
-	if err := flag.Set("v", "2"); err != nil {
-		glog.Fatalf("failed to set v: %v", err)
-	}
-	flag.Parse()
+	log := log.New()
+	log.SetReportCaller(true)
 
 	conf, err := config.LoadProxyConfig(*configPath)
 	if err != nil {
-		glog.Fatalf("failed to load config: %v", err)
+		log.Error("failed to load config", "err", err)
+		return
 	}
 
 	var cloudProvider cloud.Provider
@@ -199,7 +215,7 @@ func main() {
 	switch conf.Cloud {
 	case config.CloudGCP:
 		instanceID = conf.CloudConfig.GCP.InstanceID
-		cloudProvider, err = gcp.NewClient(context.Background(), conf.CloudConfig.GCP.Project, conf.CloudConfig.GCP.Zone)
+		cloudProvider, err = gcp.NewClient(ctx, conf.CloudConfig.GCP.Project, conf.CloudConfig.GCP.Zone)
 	case config.CloudDocker:
 		instanceID = conf.CloudConfig.Docker.ContainerID
 		cloudProvider, err = docker.NewClient()
@@ -207,45 +223,48 @@ func main() {
 		err = fmt.Errorf("unknown cloud provider")
 	}
 	if err != nil {
-		glog.Fatalf("failed to create cloud provider '%s': %v", conf.Cloud, err)
+		log.Error("failed to create cloud provider", "err", err, "cloud", conf.Cloud)
+		return
 	}
 
 	if instanceID == "" {
-		glog.Fatalf("missing instance id")
+		log.Error("instance ID is required")
+		return
 	}
 
 	// Listen for incoming connections.
 	glog.Infof("Creating proxy on '%s'", conf.ListenAddress)
 	l, err := minecraft.ListenMC(conf.ListenAddress)
 	if err != nil {
-		glog.Fatalf("failed to start proxy: %v\n", err)
+		glog.Errorf("failed to start proxy", "err", err)
+		return
 	}
 	defer l.Close()
 
 	// update the cached status every 5 minutes
 	go func() {
-		for {
-			glog.Info("Polling server status ...")
+		for ctx.Err() != nil {
+			log.Info("Checking server status")
 			status, err := cloudProvider.Status(ctx, instanceID)
 			if err != nil {
-				glog.Warningf("failed to get parent instance status: %v", err)
+				log.Warn("failed to get parent instance status", "err", err)
 				return
 			}
-			glog.Info("Server status: ", status)
+			log.Info("Server status report", "status", status)
 
 			if cachedStatus != status {
-				glog.Infof("server transitioned from '%s' -> '%s'", cachedStatus, status)
+				log.Info("Server status changed", "status.old", cachedStatus, "status.new", status)
 				cachedStatus = status
 			}
 
-			time.Sleep(5 * time.Minute)
+			async.Sleep(ctx, 5*time.Minute)
 		}
 	}()
 
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			glog.Errorf("failed to accept connection: %v", err)
+			log.Error("failed to accept connection", "err", err)
 			continue
 		}
 		go handle(ctx, conn, conf.Server, instanceID, cloudProvider)

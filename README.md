@@ -1,10 +1,6 @@
 # minecraft-preempt
 
-A lightweight golang application to start your preemptible minecraft server when a user joins
-
-## Planned Features
-
-- [ ] Turn off server when no users are detected for X time
+A lightweight Minecraft server manager. Starts a server when users join, and stops them when they leave.
 
 ## Supported Clouds
 

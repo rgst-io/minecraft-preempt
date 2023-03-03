@@ -21,7 +21,7 @@ import (
 	"net/http"
 
 	"github.com/golang/glog"
-	"github.com/jaredallard/minecraft-preempt/pkg/cloud"
+	"github.com/jaredallard/minecraft-preempt/internal/cloud"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
@@ -35,7 +35,6 @@ var (
 
 // Client is a gcs client
 type Client struct {
-	context context.Context
 	gclient *http.Client
 	compute *compute.Service
 
@@ -56,7 +55,6 @@ func NewClient(ctx context.Context, project, zone string) (*Client, error) {
 	}
 
 	return &Client{
-		context: context.Background(),
 		gclient: client,
 		compute: comp,
 		project: project,

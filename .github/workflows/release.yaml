@@ -1,45 +1,29 @@
-name: Lifecycle
+name: goreleaser
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
+    # Run only on tags
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+  packages: write
 
 jobs:
-  release-dryrun:
-    name: Release (Dry-run)
+  goreleaser:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: git fetch --force --tags
       - name: Install Tool Versions
         uses: asdf-vm/actions/install@v1
-      - name: Install Dependencies
-        run: NODE_ENV=development yarn --frozen-lockfile
-      - name: Release
+      - uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |-
-          if [ "$GITHUB_EVENT_NAME" == "pull_request" ]; then 
-            export GITHUB_EVENT_NAME=push
-            export GITHUB_REF=main
-            git checkout -b main || true
-          fi
-
-          yarn semantic-release --dry-run
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs:
-      - release-dryrun
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Tool Versions
-        uses: asdf-vm/actions/install@v1
-      - name: Install Dependencies
-        run: NODE_ENV=development yarn --frozen-lockfile
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn semantic-release
