@@ -40,6 +40,8 @@ First, define a configuration file for your server. The format is like so:
 | --------------- | ------------------------- |
 | `containerID`   | Container ID or name      |
 
+Specifying a configuration can be done with `--config`, for a file path. Or, for serverless environments, the config can be passed as a base64 encoding yaml string through the environment variable `CONFIG_BASE64`.
+
 ## License
 
 GPL-3.0

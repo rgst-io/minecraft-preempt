@@ -16,10 +16,12 @@
 package config
 
 import (
+	"encoding/base64"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
-	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
@@ -121,15 +123,24 @@ func validateConfig(conf *ProxyConfig) error {
 func LoadProxyConfig(path string) (*ProxyConfig, error) {
 	var conf ProxyConfig
 
-	f, err := os.Open(path)
-	if err == nil {
-		if err := yaml.NewDecoder(f).Decode(&conf); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal config file")
+	// Support loading env from an environment variable
+
+	var reader io.ReadCloser
+	if os.Getenv("CONFIG_BASE64") != "" {
+		reader = io.NopCloser(base64.NewDecoder(base64.StdEncoding, strings.NewReader(os.Getenv("CONFIG"))))
+	} else {
+		f, err := os.Open(path)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to open config file")
 		}
+		defer f.Close()
+
+		reader = f
 	}
 
-	if err := envconfig.Process("minecraft_preempt", &conf); err != nil {
-		return nil, errors.Wrap(err, "failed to load config from env")
+	// decode the config
+	if err := yaml.NewDecoder(reader).Decode(&conf); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal config file")
 	}
 
 	applyDefaults(&conf)
