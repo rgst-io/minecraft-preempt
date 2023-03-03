@@ -8,7 +8,6 @@ require (
 	github.com/docker/docker v23.0.1+incompatible
 	github.com/function61/gokit v0.0.0-20230206130116-7988167114d0
 	github.com/getoutreach/gobox v1.62.1
-	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/oauth2 v0.5.0
