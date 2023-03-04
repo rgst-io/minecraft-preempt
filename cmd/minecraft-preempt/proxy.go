@@ -92,7 +92,7 @@ func (p *Proxy) watcher(ctx context.Context) error {
 		}
 
 		emptySince := *emptySincePtr
-		emptyAllowedFor := 5 * time.Minute
+		emptyAllowedFor := 15 * time.Minute
 		shouldShutdown := time.Since(emptySince) > emptyAllowedFor
 		untilShutdown := time.Until(emptySince.Add(emptyAllowedFor))
 
@@ -174,6 +174,7 @@ func (p *Proxy) Start(ctx context.Context) error {
 			if err := conn.Proxy(ctx); err != nil {
 				p.log.Error("failed to proxy connection", "err", err)
 			}
+			defer conn.Close()
 
 			p.log.Info("Connection closed", "addr", connAddr)
 		}()
