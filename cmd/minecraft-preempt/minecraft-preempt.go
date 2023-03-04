@@ -108,7 +108,9 @@ func entrypoint(cmd *cobra.Command, args []string) {
 
 	// stop all the proxies
 	for _, p := range proxies {
-		p.Stop(ctx)
+		if err := p.Stop(ctx); err != nil {
+			log.Warn("failed to stop proxy", "err", err)
+		}
 	}
 
 	// wait for all the proxies to stop
