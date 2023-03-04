@@ -21,6 +21,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
@@ -41,12 +42,20 @@ type ProxyConfig struct {
 	Servers []ServerConfig `yaml:"servers"`
 }
 
+// ServerConfig is a configuration block for a server
 type ServerConfig struct {
 	// Name is a user friendly name for the server
 	Name string `yaml:"name"`
 
 	// ListenAddress is the address to listen on
 	ListenAddress string `yaml:"listenAddress"`
+
+	// ShutdownAfter is the amount of time to wait before
+	// shutting down the server after the last connection
+	// is closed
+	//
+	// Defaults to 15 minutes
+	ShutdownAfter time.Duration `yaml:"shutdownAfter"`
 
 	// GCP is the GCP configuration block
 	GCP *GCPConfig `yaml:"gcp"`
@@ -63,7 +72,7 @@ type MinecraftServerConfig struct {
 	// Hostname of the remote server
 	Hostname string `yaml:"hostname"`
 
-	// Port of the remote server
+	// Port of the remote server, defaults to 25565
 	Port uint `yaml:"port"`
 }
 
@@ -93,6 +102,16 @@ func applyDefaults(conf *ProxyConfig) {
 		if conf.Servers[i].ListenAddress == "" {
 			conf.Servers[i].ListenAddress = "0.0.0.0:25565"
 		}
+
+		if conf.Servers[i].ShutdownAfter == 0 {
+			// Default to 15 minutes
+			conf.Servers[i].ShutdownAfter = 15 * time.Minute
+		}
+
+		if conf.Servers[i].Minecraft.Port == 0 {
+			// Default to 25565
+			conf.Servers[i].Minecraft.Port = 25565
+		}
 	}
 }
 
@@ -113,6 +132,10 @@ func validateConfig(conf *ProxyConfig) error {
 
 		if s.GCP == nil && s.Docker == nil {
 			return fmt.Errorf("server %q has no gcp or docker config", s.Name)
+		}
+
+		if s.Minecraft.Hostname == "" {
+			return fmt.Errorf("server %q has no configured minecraft hostname", s.Name)
 		}
 	}
 
