@@ -125,6 +125,8 @@ github.com/felixge/httpsnoop v1.0.2/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSw
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/function61/gokit v0.0.0-20230206130116-7988167114d0 h1:5Yd9/ktJquNoJU166Grm0uPbw9uZfggw98RIQO2nNn8=
 github.com/function61/gokit v0.0.0-20230206130116-7988167114d0/go.mod h1:weOgZO9JM0mP2VnLQTCv+5AaC7EvcSiAtFIquZws/Us=
+github.com/function61/gokit v0.0.0-20230315093516-f861136c2305 h1:v41ApqvuP3Sa+6YscspFGf99KUK/1dwXKKYIEdNHmyk=
+github.com/function61/gokit v0.0.0-20230315093516-f861136c2305/go.mod h1:EsjrjWdM7Jt5k3txTdgSFDjWeoderMjwRWtXWJpwkg4=
 github.com/getoutreach/gobox v1.62.1 h1:U6P/NUZsQmZJbC2jfWV5vEbrek9FcJzAUIWQ39rFQJU=
 github.com/getoutreach/gobox v1.62.1/go.mod h1:e+wjWy7k3IDFrgl2Aky2tLI1sBpSm0Aut2EufhNTM1Y=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
