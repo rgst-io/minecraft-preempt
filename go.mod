@@ -6,7 +6,7 @@ require (
 	github.com/Tnze/go-mc v1.19.2
 	github.com/charmbracelet/log v0.1.2
 	github.com/docker/docker v23.0.1+incompatible
-	github.com/function61/gokit v0.0.0-20230315093516-f861136c2305
+	github.com/function61/gokit v0.0.0-20230322094629-674421305605
 	github.com/getoutreach/gobox v1.66.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.6.1
