@@ -161,6 +161,8 @@ github.com/function61/gokit v0.0.0-20230206130116-7988167114d0 h1:5Yd9/ktJquNoJU
 github.com/function61/gokit v0.0.0-20230206130116-7988167114d0/go.mod h1:weOgZO9JM0mP2VnLQTCv+5AaC7EvcSiAtFIquZws/Us=
 github.com/function61/gokit v0.0.0-20230315093516-f861136c2305 h1:v41ApqvuP3Sa+6YscspFGf99KUK/1dwXKKYIEdNHmyk=
 github.com/function61/gokit v0.0.0-20230315093516-f861136c2305/go.mod h1:EsjrjWdM7Jt5k3txTdgSFDjWeoderMjwRWtXWJpwkg4=
+github.com/function61/gokit v0.0.0-20230322094629-674421305605 h1:XpvFg+B/QF+88fffS/KVIWX4TY09Jymz2dLXX4wwCrM=
+github.com/function61/gokit v0.0.0-20230322094629-674421305605/go.mod h1:EsjrjWdM7Jt5k3txTdgSFDjWeoderMjwRWtXWJpwkg4=
 github.com/getoutreach/gobox v1.62.1 h1:U6P/NUZsQmZJbC2jfWV5vEbrek9FcJzAUIWQ39rFQJU=
 github.com/getoutreach/gobox v1.62.1/go.mod h1:e+wjWy7k3IDFrgl2Aky2tLI1sBpSm0Aut2EufhNTM1Y=
 github.com/getoutreach/gobox v1.66.0 h1:QzkRnDX1sgCYudOIdg49K+VZLsA2M4Tq278nmTfbdLc=
