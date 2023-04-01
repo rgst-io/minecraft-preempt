@@ -34,7 +34,7 @@ type Proxy struct {
 	*mcnet.Listener
 
 	// log is our proxy's logger
-	log log.Logger
+	log *log.Logger
 
 	// listenAddress is the address to listen on (the proxy)
 	listenAddress string
@@ -52,7 +52,7 @@ type Proxy struct {
 }
 
 // NewProxy creates a new proxy
-func NewProxy(log log.Logger, listenAddress string, s *Server) *Proxy {
+func NewProxy(log *log.Logger, listenAddress string, s *Server) *Proxy {
 	return &Proxy{
 		log:           log,
 		listenAddress: listenAddress,

@@ -35,7 +35,7 @@ type Connection struct {
 	*minecraft.Client
 
 	// log is our connection's logger
-	log log.Logger
+	log *log.Logger
 
 	// s is the server we're proxying to
 	s *Server
@@ -62,7 +62,7 @@ type ConnectionHooks struct {
 }
 
 // NewConnection creates a new connection to the provided server
-func NewConnection(conn *mcnet.Conn, log log.Logger, s *Server, h *ConnectionHooks) *Connection {
+func NewConnection(conn *mcnet.Conn, log *log.Logger, s *Server, h *ConnectionHooks) *Connection {
 	return &Connection{&minecraft.Client{Conn: conn}, log, s, h}
 }
 

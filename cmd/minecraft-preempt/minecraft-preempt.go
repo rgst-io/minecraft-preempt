@@ -49,7 +49,10 @@ var rootCmd = &cobra.Command{
 func entrypoint(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
 
-	log := log.New(log.WithCaller(), log.WithTimestamp())
+	log := log.NewWithOptions(os.Stderr, log.Options{
+		ReportCaller:    true,
+		ReportTimestamp: true,
+	})
 
 	confPath, err := cmd.Flags().GetString("config")
 	if err != nil {

@@ -39,7 +39,7 @@ type Server struct {
 	instanceID string
 
 	// log is our server's logger
-	log log.Logger
+	log *log.Logger
 
 	// config is our server's configuration
 	config *config.ServerConfig
@@ -77,7 +77,7 @@ func GetCloudProviderForConfig(conf *config.ServerConfig) (cloud.Provider, strin
 }
 
 // NewServer creates a new server
-func NewServer(log log.Logger, conf *config.ServerConfig) (*Server, error) {
+func NewServer(log *log.Logger, conf *config.ServerConfig) (*Server, error) {
 	cloudProvider, instanceID, err := GetCloudProviderForConfig(conf)
 	if err != nil {
 		return nil, err
