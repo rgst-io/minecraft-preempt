@@ -158,15 +158,27 @@ func (p *Proxy) Start(ctx context.Context) error {
 			continue
 		}
 
+		// tracks if this connection made it to the login state
+		// HACK(jaredallard): We should do something better than this.
+		var madeItToLogin bool
+
 		// create a new connection
 		conn := NewConnection(&rawConn, p.log, p.server, &ConnectionHooks{
 			OnLogin: func() {
+				// track that we made it to login state for connection
+				// tracking
+				madeItToLogin = true
+
 				// reset the emptySince time
 				p.emptySince.Store(nil)
 				p.connections.Add(1)
 			},
 			OnClose: func() {
-				p.connections.Add(^uint64(0))
+				// only decrement if we made it to login state, where we
+				// would've incremented the connection count
+				if madeItToLogin {
+					p.connections.Add(^uint64(0))
+				}
 			},
 		})
 		connAddr := rawConn.Socket.RemoteAddr().String()
