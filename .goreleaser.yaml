@@ -24,7 +24,8 @@ archives:
         format: zip
 dockers:
   # amd64
-  - build_flag_templates:
+  - use: buildx
+    build_flag_templates:
       - --platform=linux/amd64
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.description={{ .ProjectName }}
@@ -37,7 +38,8 @@ dockers:
     image_templates:
       - "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}-amd64"
   # arm64
-  - goos: linux
+  - use: buildx
+    goos: linux
     goarch: arm64
     build_flag_templates:
       - --platform=linux/arm64
