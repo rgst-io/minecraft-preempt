@@ -158,18 +158,34 @@ func (p *Proxy) Start(ctx context.Context) error {
 			continue
 		}
 
-		// create a new connection
-		conn := NewConnection(&rawConn, p.log, p.server)
-		connAddr := rawConn.Socket.RemoteAddr().String()
+		// tracks if this connection made it to the login state
+		// HACK(jaredallard): We should do something better than this.
+		var madeItToLogin bool
 
-		// reset the emptySince time
-		p.emptySince.Store(nil)
-		p.connections.Add(1)
+		// create a new connection
+		conn := NewConnection(&rawConn, p.log, p.server, &ConnectionHooks{
+			OnLogin: func() {
+				// track that we made it to login state for connection
+				// tracking
+				madeItToLogin = true
+
+				// reset the emptySince time
+				p.emptySince.Store(nil)
+				p.connections.Add(1)
+			},
+			OnClose: func() {
+				// only decrement if we made it to login state, where we
+				// would've incremented the connection count
+				if madeItToLogin {
+					p.connections.Add(^uint64(0))
+				}
+			},
+		})
+		connAddr := rawConn.Socket.RemoteAddr().String()
 
 		// proxy the connection in a goroutine
 		p.log.Debug("Handling connection", "addr", connAddr)
 		go func() {
-			defer p.connections.Add(^uint64(0))
 			if err := conn.Proxy(ctx); err != nil {
 				p.log.Error("failed to proxy connection", "err", err)
 			}
