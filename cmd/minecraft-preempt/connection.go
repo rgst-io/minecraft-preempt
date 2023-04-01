@@ -39,15 +39,36 @@ type Connection struct {
 
 	// s is the server we're proxying to
 	s *Server
+
+	hooks *ConnectionHooks
+}
+
+// ConnectionHooks are hooks that are called when certain events happen
+// on the connection.
+type ConnectionHooks struct {
+	// OnClose is called when the connection is closed
+	OnClose func()
+
+	// OnConnect is called when the connection is established
+	OnConnect func()
+
+	// OnLogin is called when the client sends a login packet
+	OnLogin func()
+
+	// OnStatus is called when the client sends a status packet
+	OnStatus func()
 }
 
 // NewConnection creates a new connection to the provided server
-func NewConnection(conn *mcnet.Conn, log log.Logger, s *Server) *Connection {
-	return &Connection{&minecraft.Client{Conn: conn}, log, s}
+func NewConnection(conn *mcnet.Conn, log log.Logger, s *Server, h *ConnectionHooks) *Connection {
+	return &Connection{&minecraft.Client{Conn: conn}, log, s, h}
 }
 
 // Close closes the connection
 func (c *Connection) Close() error {
+	if c.hooks.OnClose != nil {
+		c.hooks.OnClose()
+	}
 	return c.Conn.Close()
 }
 
@@ -61,6 +82,10 @@ func (c *Connection) checkState(ctx context.Context, clientState minecraft.Clien
 
 	switch clientState {
 	case minecraft.ClientStateCheck:
+		if c.hooks.OnStatus != nil {
+			c.hooks.OnStatus()
+		}
+
 		c.log.Debug("Client is requesting status, sending status response")
 
 		var mcStatus *minecraft.Status
@@ -116,7 +141,11 @@ func (c *Connection) checkState(ctx context.Context, clientState minecraft.Clien
 		}
 		return false, nil
 	case minecraft.ClientStatePlayerLogin:
-		c.log.Debug("Client is requesting login, checking server status ")
+		if c.hooks.OnLogin != nil {
+			c.hooks.OnLogin()
+		}
+
+		c.log.Debug("Client is requesting login, checking server status")
 		if status != cloud.StatusRunning {
 			c.log.Info("Server is not running, starting server")
 			if err := c.s.Start(ctx); err != nil {
@@ -140,6 +169,10 @@ func (c *Connection) checkState(ctx context.Context, clientState minecraft.Clien
 
 // Proxy proxies the connection to the server
 func (c *Connection) Proxy(ctx context.Context) error {
+	if c.hooks.OnConnect != nil {
+		c.hooks.OnConnect()
+	}
+
 	c.log.Info("Proxying connection", "client", c.Conn.Socket.RemoteAddr())
 	nextState, originalHandshake, err := c.Handshake()
 	if err != nil {

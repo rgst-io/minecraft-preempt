@@ -159,17 +159,21 @@ func (p *Proxy) Start(ctx context.Context) error {
 		}
 
 		// create a new connection
-		conn := NewConnection(&rawConn, p.log, p.server)
+		conn := NewConnection(&rawConn, p.log, p.server, &ConnectionHooks{
+			OnLogin: func() {
+				// reset the emptySince time
+				p.emptySince.Store(nil)
+				p.connections.Add(1)
+			},
+			OnClose: func() {
+				p.connections.Add(^uint64(0))
+			},
+		})
 		connAddr := rawConn.Socket.RemoteAddr().String()
-
-		// reset the emptySince time
-		p.emptySince.Store(nil)
-		p.connections.Add(1)
 
 		// proxy the connection in a goroutine
 		p.log.Debug("Handling connection", "addr", connAddr)
 		go func() {
-			defer p.connections.Add(^uint64(0))
 			if err := conn.Proxy(ctx); err != nil {
 				p.log.Error("failed to proxy connection", "err", err)
 			}
