@@ -40,6 +40,8 @@ type Connection struct {
 	// s is the server we're proxying to
 	s *Server
 
+	// hooks contains hooks that are called when certain events happen
+	// on the connection.
 	hooks *ConnectionHooks
 }
 
