@@ -23,7 +23,6 @@ import (
 
 	mcnet "github.com/Tnze/go-mc/net"
 	"github.com/charmbracelet/log"
-	"github.com/getoutreach/gobox/pkg/async"
 	"github.com/jaredallard/minecraft-preempt/internal/cloud"
 	"github.com/jaredallard/minecraft-preempt/internal/minecraft"
 	"github.com/pkg/errors"
@@ -63,8 +62,11 @@ func NewProxy(log *log.Logger, listenAddress string, s *Server) *Proxy {
 // watcher is a status reporter for a proxy and stopper for a server
 func (p *Proxy) watcher(ctx context.Context) error {
 	for ctx.Err() == nil {
-		if async.Sleep(ctx, 15*time.Second); ctx.Err() != nil {
-			return nil
+		// Sleep for 15 seconds while respecting context cancellation
+		select {
+		case <-time.After(15 * time.Second):
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 
 		// if we have connections, don't try to stop the server
