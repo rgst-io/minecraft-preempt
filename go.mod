@@ -8,7 +8,7 @@ require (
 	github.com/docker/docker v23.0.2+incompatible
 	github.com/function61/gokit v0.0.0-20230331064502-089aa58a9c0e
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.7.0
 	golang.org/x/oauth2 v0.6.0
 	google.golang.org/api v0.114.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -30,7 +30,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.1 // indirect
-	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
