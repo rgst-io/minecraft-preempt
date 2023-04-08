@@ -39,6 +39,8 @@ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/function61/gokit v0.0.0-20230331064502-089aa58a9c0e h1:Z2NrY3pQ45acTgBi4BXVr0vmYycsAwkNSIWAc5+mwXE=
 github.com/function61/gokit v0.0.0-20230331064502-089aa58a9c0e/go.mod h1:EsjrjWdM7Jt5k3txTdgSFDjWeoderMjwRWtXWJpwkg4=
+github.com/function61/gokit v0.0.0-20230408192420-6f1204d63c2b h1:qUd+dMkYFT6ZDzCrFoQxgnYqq4qPi8R/aiVXR77Zh/E=
+github.com/function61/gokit v0.0.0-20230408192420-6f1204d63c2b/go.mod h1:EsjrjWdM7Jt5k3txTdgSFDjWeoderMjwRWtXWJpwkg4=
 github.com/go-logfmt/logfmt v0.6.0 h1:wGYYu3uicYdqXVgoYbvnkrPVXkuLM1p1ifugDMEdRi4=
 github.com/go-logfmt/logfmt v0.6.0/go.mod h1:WYhtIu8zTZfxdn5+rREduYbwxfcBr/Vr6KEVveWlfTs=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
