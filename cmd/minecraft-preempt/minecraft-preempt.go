@@ -52,6 +52,7 @@ func entrypoint(cmd *cobra.Command, args []string) {
 	log := log.NewWithOptions(os.Stderr, log.Options{
 		ReportCaller:    true,
 		ReportTimestamp: true,
+		Level:           log.DebugLevel,
 	})
 
 	confPath, err := cmd.Flags().GetString("config")
@@ -60,7 +61,6 @@ func entrypoint(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// TODO: CLI framework to load this in
 	conf, err := config.LoadProxyConfig(confPath)
 	if err != nil {
 		log.Error("failed to load config", "err", err)
@@ -132,7 +132,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	rootCmd.PersistentFlags().String("config", "", "config file")
+	rootCmd.PersistentFlags().String("config", "./config/config.yaml", "config file")
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		exitCode = 1

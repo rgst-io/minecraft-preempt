@@ -13,18 +13,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// Package cloud contains the interfaces and shared types between cloud
+// providers.
 package cloud
 
-import "context"
+import (
+	"context"
+)
 
+// ProviderStatus is the status of an instance
 type ProviderStatus string
 
+// Contains definitions for the ProviderStatus type
 var (
-	StatusRunning  ProviderStatus = "RUNNING"
-	StatusStopped  ProviderStatus = "STOPPED"
+	// StatusRunning denotes an instances is currently running and is able
+	// to accept connections.
+	StatusRunning ProviderStatus = "RUNNING"
+
+	// StatusStopped denotes an instance is stopped and is not able to accept
+	// connections, but can be started.
+	StatusStopped ProviderStatus = "STOPPED"
+
+	// StatusStopping denotes an instance is currently stopping and is not able
+	// to accept connections or be started.
 	StatusStopping ProviderStatus = "STOPPING"
+
+	// StatusStarting denotes an instance is currently starting and is not able
+	// to accept connections or be started.
 	StatusStarting ProviderStatus = "STARTING"
-	StatusUnknown  ProviderStatus = "UNKNOWN"
+
+	// StatusUnknown denotes an instance is in an unknown state and cannot be
+	// determined. This is usually an error state.
+	StatusUnknown ProviderStatus = "UNKNOWN"
 )
 
 // Provider is a cloud provider

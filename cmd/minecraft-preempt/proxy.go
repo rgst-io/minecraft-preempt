@@ -98,9 +98,6 @@ func (p *Proxy) watcher(ctx context.Context) error {
 		untilShutdown := time.Until(emptySince.Add(p.server.config.ShutdownAfter))
 
 		p.log.Info("Proxy status", "connections", p.connections.Load(), "shutdown_in", untilShutdown)
-
-		// if we've been empty for X time, stop the server
-		// TODO(jaredallard): make this configurable
 		if shouldShutdown {
 			p.log.Info("No connections in configured time, stopping server")
 			if err := p.server.Stop(ctx); err != nil {
@@ -111,6 +108,7 @@ func (p *Proxy) watcher(ctx context.Context) error {
 			p.emptySince.Store(nil)
 		}
 	}
+
 	return ctx.Err()
 }
 
@@ -166,7 +164,8 @@ func (p *Proxy) Start(ctx context.Context) error {
 
 		// create a new connection
 		conn := NewConnection(&rawConn, p.log, p.server, &ConnectionHooks{
-			OnLogin: func() {
+			OnLogin: func(l *minecraft.LoginStart) {
+				p.log.Info("Login initiated", "username", l.Name)
 				// track that we made it to login state for connection
 				// tracking
 				madeItToLogin = true

@@ -1,7 +1,7 @@
 servers:
   - name: development
     docker:
-      containerID: mc
+      containerID: minecraft-preempt-minecraft-1
     minecraft:
       hostname: 127.0.0.1
       port: 25566

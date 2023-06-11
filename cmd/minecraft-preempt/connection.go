@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	mcnet "github.com/Tnze/go-mc/net"
+	pk "github.com/Tnze/go-mc/net/packet"
 	"github.com/charmbracelet/log"
 	"github.com/function61/gokit/io/bidipipe"
 	"github.com/jaredallard/minecraft-preempt/internal/cloud"
@@ -55,7 +56,7 @@ type ConnectionHooks struct {
 	OnConnect func()
 
 	// OnLogin is called when the client sends a login packet
-	OnLogin func()
+	OnLogin func(*minecraft.LoginStart)
 
 	// OnStatus is called when the client sends a status packet
 	OnStatus func()
@@ -74,98 +75,113 @@ func (c *Connection) Close() error {
 	return c.Conn.Close()
 }
 
-// checkState checks the state of the connection to see if we should send
-// a status response, or if we should start a server.
-func (c *Connection) checkState(ctx context.Context, clientState minecraft.ClientState) (shouldContinue bool, err error) {
-	status, err := c.s.GetStatus(ctx)
-	if err != nil {
-		return false, errors.Wrap(err, "failed to get server status")
+// status implements the Status packet. Checks to see if the server
+// is running or not. If the server is running, it proxies the status
+// packet to the server and returns the response to the client.
+//
+// If the server is not running, it returns a status response with
+// the server's status.
+func (c *Connection) status(ctx context.Context, status cloud.ProviderStatus) error {
+	if c.hooks.OnStatus != nil {
+		c.hooks.OnStatus()
 	}
 
-	switch clientState {
-	case minecraft.ClientStateCheck:
-		if c.hooks.OnStatus != nil {
-			c.hooks.OnStatus()
+	c.log.Debug("Client is requesting status, sending status response")
+
+	var mcStatus *minecraft.Status
+
+	// attempt to get the status of the server from the server
+	if status == cloud.StatusRunning {
+		var err error
+		mcStatus, err = c.s.GetMinecraftStatus()
+		if err != nil {
+			c.log.Warn("Failed to get server status", "err", err)
+			status = cloud.StatusUnknown
+		} else if mcStatus.Version != nil {
+			c.log.Debug("Remote server information",
+				"version.name", mcStatus.Version.Name,
+				"version.protocol", mcStatus.Version.Protocol,
+			)
+			c.s.lastMinecraftStatus.Store(mcStatus)
+		}
+	}
+
+	// Server isn't running, or we failed to get the status
+	if mcStatus == nil {
+		// Not running, or something else, build a status
+		// response with the server offline.
+		v := &minecraft.StatusVersion{
+			Name: "unknown",
+			// TODO(jaredallard): How do we handle this? 754 works
+			// for 1.16.5+ but not below.
+			Protocol: 754,
 		}
 
-		c.log.Debug("Client is requesting status, sending status response")
-
-		var mcStatus *minecraft.Status
-
-		// attempt to get the status of the server from the server
-		if status == cloud.StatusRunning {
-			var err error
-			mcStatus, err = c.s.GetMinecraftStatus()
-			if err != nil {
-				c.log.Warn("Failed to get server status", "err", err)
-				status = cloud.StatusUnknown
-			} else if mcStatus.Version != nil {
-				c.log.Debug("Remote server information",
-					"version.name", mcStatus.Version.Name,
-					"version.protocol", mcStatus.Version.Protocol,
-				)
-				c.s.lastMinecraftStatus.Store(mcStatus)
-			}
+		// attempt to read the version information out of the last status
+		// we received from the server.
+		if c.s.lastMinecraftStatus.Load() != nil {
+			lastMcStatus := c.s.lastMinecraftStatus.Load()
+			v = lastMcStatus.Version
 		}
 
-		// Server isn't running, or we failed to get the status
-		if mcStatus == nil {
-			// Not running, or something else, build a status
-			// response with the server offline.
-			v := &minecraft.StatusVersion{
-				Name: "unknown",
-				// TODO(jaredallard): How do we handle this? 754 works
-				// for 1.16.5+ but not below.
-				Protocol: 754,
-			}
+		mcStatus = &minecraft.Status{
+			Version: v,
+			Players: &minecraft.StatusPlayers{
+				Max:    0,
+				Online: 0,
+			},
+			Description: &minecraft.StatusDescription{
+				Text: fmt.Sprintf("Server status: %s", status),
+			},
+		}
+	}
 
-			// attempt to read the version information out of the last status
-			// we received from the server.
-			if c.s.lastMinecraftStatus.Load() != nil {
-				lastMcStatus := c.s.lastMinecraftStatus.Load()
-				v = lastMcStatus.Version
-			}
+	// send the status back to the client
+	return errors.Wrap(c.SendStatus(mcStatus), "failed to send status response")
+}
 
-			mcStatus = &minecraft.Status{
-				Version: v,
-				Players: &minecraft.StatusPlayers{
-					Max:    0,
-					Online: 0,
-				},
-				Description: &minecraft.StatusDescription{
-					Text: fmt.Sprintf("Server status: %s", status),
-				},
-			}
+// checkState checks the state of the connection to see if we should send
+// a status response, or if we should start a server.
+func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState) (replay []*pk.Packet, err error) {
+	status, err := c.s.GetStatus(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get server status")
+	}
+
+	switch state {
+	case minecraft.ClientStateCheck: // Status request
+		c.status(ctx, status)
+		return nil, nil
+	case minecraft.ClientStatePlayerLogin: // Login request
+		// read the next packet to get the login information
+		login, originalLogin, err := c.ReadLoginStart()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read login packet")
 		}
 
-		if err := c.SendStatus(mcStatus); err != nil {
-			return false, errors.Wrap(err, "failed to send status response")
-		}
-		return false, nil
-	case minecraft.ClientStatePlayerLogin:
 		if c.hooks.OnLogin != nil {
-			c.hooks.OnLogin()
+			c.hooks.OnLogin(login)
 		}
 
 		c.log.Debug("Client is requesting login, checking server status")
 		if status != cloud.StatusRunning {
 			c.log.Info("Server is not running, starting server")
 			if err := c.s.Start(ctx); err != nil {
-				return false, errors.Wrap(err, "failed to start server")
+				return nil, errors.Wrap(err, "failed to start server")
 			}
 
 			// send disconnect message
 			if err := c.SendDisconnect("Server is being started, please try again later"); err != nil {
-				return false, errors.Wrap(err, "failed to send disconnect message")
+				return nil, errors.Wrap(err, "failed to send disconnect message")
 			}
 
-			return false, nil
+			return nil, nil
 		}
 
 		// server is running, continue
-		return true, nil
+		return []*pk.Packet{originalLogin}, nil
 	default:
-		return false, errors.Errorf("unknown client state: %d", clientState)
+		return nil, errors.Errorf("unknown client state: %d", state)
 	}
 }
 
@@ -185,11 +201,11 @@ func (c *Connection) Proxy(ctx context.Context) error {
 		return nil
 	}
 
-	shouldContinue, err := c.checkState(ctx, minecraft.ClientState(nextState))
+	replayPackets, err := c.checkState(ctx, minecraft.ClientState(nextState))
 	if err != nil {
 		return errors.Wrap(err, "failed to check server status")
 	}
-	if !shouldContinue {
+	if len(replayPackets) == 0 {
 		return nil
 	}
 
@@ -201,15 +217,19 @@ func (c *Connection) Proxy(ctx context.Context) error {
 	}
 	defer rconn.Close()
 
-	if err := rconn.WritePacket(*originalHandshake); err != nil {
-		return errors.Wrap(err, "failed to write handshake")
+	// Replay the original handshake to the remote server
+	for _, p := range append([]*pk.Packet{originalHandshake}, replayPackets...) {
+		log.Debug("Replaying packet", "id", p.ID, "data", string(p.Data))
+		if err := rconn.WritePacket(*p); err != nil {
+			return errors.Wrap(err, "failed to write handshake")
+		}
 	}
 
+	// Proxy the connection to the remote server
 	if err := bidipipe.Pipe(
 		bidipipe.WithName("client", c.Conn.Socket),
 		bidipipe.WithName("remote", rconn),
 	); err != nil && !strings.Contains(err.Error(), "use of closed network connection") {
-		// TODO(jaredallard): Figure out why this errors on Status calls.
 		return errors.Wrap(err, "failed to proxy")
 	}
 

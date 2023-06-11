@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Jared Allard <jared@rgst.io>
+// Copyright (C) 2023 Jared Allard <jared@rgst.io>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -35,13 +35,15 @@ type Client struct {
 // the handshake process
 type ClientState int
 
+// Contains definitions for the ClientState type
 const (
 	// ClientStateCheck is when a client is attempting to check the status
 	// of the server
 	ClientStateCheck ClientState = iota + 1
+
 	// ClientStatePlayerLogin is the state of the client when trying to login to
 	// the server
-	ClientStatePlayerLogin ClientState = iota + 1
+	ClientStatePlayerLogin
 )
 
 // Handshake reads the handshake packet and returns the next state
@@ -66,6 +68,36 @@ func (c *Client) Handshake() (nextState int32, original *pk.Packet, err error) {
 	}
 
 	return nextState, &p, nil
+}
+
+// LoginStart is the packet sent by the client when they're trying to login
+// to the server.
+//
+// See https://wiki.vg/Protocol#Login_Start.
+type LoginStart struct {
+	Name string `json:"name"`
+}
+
+// ReadLoginStart reads the login start packet from the client. It returns
+// the parsed packet, the original packet, and an error if one occurred.
+//
+// This should not be trusted as the client can send any string they want
+// and hasn't been authenticated until later in the login process.
+func (c *Client) ReadLoginStart() (*LoginStart, *pk.Packet, error) {
+	var p pk.Packet
+	if err := c.ReadPacket(&p); err != nil {
+		return nil, nil, err
+	}
+	if p.ID != 0 {
+		return nil, nil, fmt.Errorf("packet ID 0x%X is not login start", p.ID)
+	}
+
+	var name pk.String
+	if err := p.Scan(&name); err != nil {
+		return nil, nil, err
+	}
+
+	return &LoginStart{Name: string(name)}, &p, nil
 }
 
 // SendDisconnect sends a disconnect packet to the client with the provided reason
