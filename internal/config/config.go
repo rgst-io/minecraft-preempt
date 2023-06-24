@@ -65,6 +65,10 @@ type ServerConfig struct {
 
 	// Minecraft is the Minecraft configuration block
 	Minecraft MinecraftServerConfig `yaml:"minecraft"`
+
+	// Whitelist is a list of usernames to whitelist. If empty,
+	// all users are allowed
+	Whitelist []string `yaml:"whitelist"`
 }
 
 // Server configuration block

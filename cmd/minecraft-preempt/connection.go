@@ -140,6 +140,17 @@ func (c *Connection) status(ctx context.Context, status cloud.ProviderStatus) er
 	return errors.Wrap(c.SendStatus(mcStatus), "failed to send status response")
 }
 
+// isWhitelisted checks to see if the player is whitelisted on the server.
+func (c *Connection) isWhitelisted(playerName string) bool {
+	for _, name := range c.s.config.Whitelist {
+		if name == playerName {
+			return true
+		}
+	}
+
+	return false
+}
+
 // checkState checks the state of the connection to see if we should send
 // a status response, or if we should start a server.
 func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState) (replay []*pk.Packet, err error) {
@@ -161,6 +172,17 @@ func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState
 
 		if c.hooks.OnLogin != nil {
 			c.hooks.OnLogin(login)
+		}
+
+		// HACK: We'll want a better framework for "plugins" like this than
+		// checkState.
+		if len(c.s.config.Whitelist) > 0 {
+			if !c.isWhitelisted(login.Name) {
+				c.log.Info("Player is not whitelisted, disconnecting")
+				if err := c.SendDisconnect("You are not whitelisted on this server"); err != nil {
+					return nil, errors.Wrap(err, "failed to send disconnect message")
+				}
+			}
 		}
 
 		c.log.Debug("Client is requesting login, checking server status")
