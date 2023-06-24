@@ -19,12 +19,13 @@ First, define a configuration file for your server. The format is like so:
 
 #### Server
 
-| Key             | Description               |
-| --------------- | ------------------------- |
-| `name`          | The name of the server.   |
-| `listenAddress` | The address to listen on. |
-| `gcp`           | The GCP configuration     |
-| `docker`        | The Docker configuration  |
+| Key             | Description                      |
+| --------------- | -------------------------------- |
+| `name`          | The name of the server.          |
+| `listenAddress` | The address to listen on.        |
+| `gcp`           | The GCP configuration            |
+| `docker`        | The Docker configuration         |
+| `whitelist`     | List of users allowed to connect |
 
 ### Cloud Configurations
 
