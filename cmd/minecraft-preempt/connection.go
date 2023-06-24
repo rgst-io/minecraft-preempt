@@ -170,10 +170,6 @@ func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState
 			return nil, errors.Wrap(err, "failed to read login packet")
 		}
 
-		if c.hooks.OnLogin != nil {
-			c.hooks.OnLogin(login)
-		}
-
 		// HACK: We'll want a better framework for "plugins" like this than
 		// checkState.
 		if len(c.s.config.Whitelist) > 0 {
@@ -183,6 +179,10 @@ func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState
 					return nil, errors.Wrap(err, "failed to send disconnect message")
 				}
 			}
+		}
+
+		if c.hooks.OnLogin != nil {
+			c.hooks.OnLogin(login)
 		}
 
 		c.log.Debug("Client is requesting login, checking server status")

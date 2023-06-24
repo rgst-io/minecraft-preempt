@@ -160,10 +160,9 @@ func LoadProxyConfig(path string) (*ProxyConfig, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to open config file")
 		}
-		defer f.Close()
-
 		reader = f
 	}
+	defer reader.Close()
 
 	// decode the config
 	if err := yaml.NewDecoder(reader).Decode(&conf); err != nil {
