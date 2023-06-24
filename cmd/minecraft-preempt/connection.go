@@ -178,6 +178,9 @@ func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState
 				if err := c.SendDisconnect("You are not whitelisted on this server"); err != nil {
 					return nil, errors.Wrap(err, "failed to send disconnect message")
 				}
+
+				// We don't want to send the login packet to the server
+				return nil, nil
 			}
 		}
 
