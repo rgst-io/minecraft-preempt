@@ -26,8 +26,25 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/function61/gokit/io/bidipipe"
 	"github.com/jaredallard/minecraft-preempt/internal/cloud"
+	"github.com/jaredallard/minecraft-preempt/internal/eventbus"
 	"github.com/jaredallard/minecraft-preempt/internal/minecraft"
 	"github.com/pkg/errors"
+)
+
+// Contains events emitted during a minecraft connection
+var (
+	// EventLoginSuccess is emitted when a connection has successfully
+	// authenticated.
+	EventLoginSuccess eventbus.EventKey = "connection.login.success"
+
+	// EventLoginInitiated is emitted when a connection has initiated
+	// a login request.
+	EventLoginInitiated eventbus.EventKey = "connection.login.initiated"
+
+	// EventHandOff is emitted when a connection has been handed off
+	// to the underlying minecraft server. At this point it is no
+	// longer processed by the server.
+	EventHandOff eventbus.EventKey = "connection.handoff"
 )
 
 // Connection is a connection to our proxy instance.
@@ -180,6 +197,11 @@ func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState
 			return nil, errors.Wrap(err, "failed to read login packet")
 		}
 
+		// Login initiated event
+		if _, err := eventbus.Emit(EventLoginInitiated, login); err != nil {
+			return nil, errors.Wrap(err, "failed to run event handler(s)")
+		}
+
 		// HACK: We'll want a better framework for "plugins" like this than
 		// checkState.
 		if len(c.s.config.Whitelist) > 0 {
@@ -194,8 +216,9 @@ func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState
 			}
 		}
 
-		if c.hooks.OnLogin != nil {
-			c.hooks.OnLogin(login)
+		// Login successful event
+		if _, err := eventbus.Emit(EventLoginSuccess, login); err != nil {
+			return nil, errors.Wrap(err, "failed to run event handler(s)")
 		}
 
 		if status != cloud.StatusRunning {
@@ -247,6 +270,11 @@ func (c *Connection) Proxy(ctx context.Context) error {
 		if err := rconn.WritePacket(*p); err != nil {
 			return errors.Wrap(err, "failed to write handshake")
 		}
+	}
+
+	// Login initiated event
+	if _, err := eventbus.Emit(EventHandOff, nil); err != nil {
+		return errors.Wrap(err, "failed to run event handler(s)")
 	}
 
 	// Proxy the connection to the remote server
