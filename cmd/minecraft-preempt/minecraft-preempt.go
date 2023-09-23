@@ -24,7 +24,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
@@ -67,38 +66,32 @@ func entrypoint(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	wg := &sync.WaitGroup{}
-
-	proxies := make([]*Proxy, len(conf.Servers))
-
+	servers := make([]*Server, len(conf.Servers))
 	for i := range conf.Servers {
 		sconf := &conf.Servers[i]
-		logger := log.With("server", sconf.Name)
+		logger := log.With("server", sconf.Hostname)
 
-		logger.Info("Creating Server", "address", sconf.ListenAddress)
+		logger.Info("Creating Server")
 		s, err := NewServer(logger, sconf)
 		if err != nil {
 			log.Error("failed to create server", "err", err)
 			return
 		}
-
-		// create the proxy
-		logger.Info("Creating Proxy")
-		p := NewProxy(logger, sconf.ListenAddress, s)
-		proxies[i] = p
-
-		// stat the proxy in a goroutine
-		wg.Add(1)
-
-		go func() {
-			if err := p.Start(ctx); err != nil && !errors.Is(err, context.Canceled) {
-				log.Error("proxy exited", "err", err)
-			}
-			logger.Info("Proxy exited")
-
-			wg.Done()
-		}()
+		servers[i] = s
 	}
+
+	finisedChan := make(chan struct{})
+	p := NewProxy(log, conf.ListenAddress, servers)
+
+	// start the proxy in a goroutine so we can wait for it to exit later.
+	go func() {
+		if err := p.Start(ctx); err != nil && !errors.Is(err, context.Canceled) {
+			log.Error("proxy exited", "err", err)
+		}
+		log.Info("Proxy exited")
+
+		close(finisedChan)
+	}()
 
 	// wait for the context to be cancelled
 	<-ctx.Done()
@@ -109,15 +102,11 @@ func entrypoint(cmd *cobra.Command, args []string) {
 	ctx, cancel = context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	// stop all the proxies
-	for _, p := range proxies {
-		if err := p.Stop(ctx); err != nil {
-			log.Warn("failed to stop proxy", "err", err)
-		}
+	// stop the proxy
+	if err := p.Stop(ctx); err != nil {
+		log.Warn("failed to stop proxy", "err", err)
 	}
-
-	// wait for all the proxies to stop
-	wg.Wait()
+	<-finisedChan
 
 	log.Info("Shutdown complete")
 }

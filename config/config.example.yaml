@@ -1,7 +1,10 @@
+# For WSL:
+# listenAddress: 127.0.0.1:25565
 servers:
-  - name: development
+  - hostname: localhost
     docker:
       containerID: minecraft-preempt-minecraft-1
+    shutdownAfter: 24h
     minecraft:
       hostname: 127.0.0.1
       port: 25566

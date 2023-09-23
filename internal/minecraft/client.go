@@ -46,28 +46,53 @@ const (
 	ClientStatePlayerLogin
 )
 
+// Handshake is the first packet sent to a Minecraft server.
+//
+// See: https://wiki.vg/Protocol#Handshaking
+type Handshake struct {
+	// Packet is the original packet that was sent, and consumed, by the
+	// proxy.
+	Packet *pk.Packet
+
+	// ProtocolVersion is the version of the Minecraft protocol the client
+	// is using.
+	ProtocolVersion int32
+
+	// ServerAddress is the address of the server the client is trying to
+	// connect to.
+	ServerAddress string
+
+	// ServerPort is the port of the server the client is trying to
+	// connect to.
+	ServerPort uint16
+
+	// NextState is the next state the client is trying to transition to.
+	NextState int32
+}
+
 // Handshake reads the handshake packet and returns the next state
-func (c *Client) Handshake() (nextState int32, original *pk.Packet, err error) {
+func (c *Client) Handshake() (*Handshake, error) {
 	var p pk.Packet
 	if err := c.ReadPacket(&p); err != nil {
-		return -1, nil, err
+		return nil, fmt.Errorf("failed to read packet: %w", err)
 	}
 	if p.ID != 0 {
-		return -1, nil, fmt.Errorf("packet ID 0x%X is not handshake", p.ID)
+		return nil, fmt.Errorf("packet ID 0x%X is not handshake", p.ID)
 	}
 
-	var (
-		sid pk.String
-		spt pk.Short
-	)
+	h := &Handshake{Packet: &p}
 	if err := p.Scan(
-		(*pk.VarInt)(&c.ProtocolVersion),
-		&sid, &spt,
-		(*pk.VarInt)(&nextState)); err != nil {
-		return -1, nil, err
+		(*pk.VarInt)(&h.ProtocolVersion),
+		(*pk.String)(&h.ServerAddress),
+		(*pk.UnsignedShort)(&h.ServerPort),
+		(*pk.VarInt)(&h.NextState)); err != nil {
+		return nil, fmt.Errorf("failed to scan packet: %w", err)
 	}
 
-	return nextState, &p, nil
+	// set the protocol version on the client.
+	c.ProtocolVersion = h.ProtocolVersion
+
+	return h, nil
 }
 
 // LoginStart is the packet sent by the client when they're trying to login
