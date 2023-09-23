@@ -172,8 +172,7 @@ func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState
 
 	switch state {
 	case minecraft.ClientStateCheck: // Status request
-		c.status(ctx, status)
-		return nil, nil
+		return nil, c.status(ctx, status)
 	case minecraft.ClientStatePlayerLogin: // Login request
 		// read the next packet to get the login information
 		login, originalLogin, err := c.ReadLoginStart()
