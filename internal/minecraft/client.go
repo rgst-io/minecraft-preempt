@@ -18,6 +18,7 @@ package minecraft
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	mcnet "github.com/Tnze/go-mc/net"
 	pk "github.com/Tnze/go-mc/net/packet"
@@ -59,7 +60,10 @@ type Handshake struct {
 	ProtocolVersion int32
 
 	// ServerAddress is the address of the server the client is trying to
-	// connect to.
+	// connect to. If there are any NULL characters, they are
+	// automatically stripped as well as all content after them. This is
+	// to handle the case of Forge servers where the server address is
+	// suffixed with \0x00FML3\0x00.
 	ServerAddress string
 
 	// ServerPort is the port of the server the client is trying to
@@ -87,6 +91,13 @@ func (c *Client) Handshake() (*Handshake, error) {
 		(*pk.UnsignedShort)(&h.ServerPort),
 		(*pk.VarInt)(&h.NextState)); err != nil {
 		return nil, fmt.Errorf("failed to scan packet: %w", err)
+	}
+
+	// if there's null characters in the server address, use the data
+	// before the first null character.
+	nullData := strings.Split(h.ServerAddress, "\x00")
+	if len(nullData) > 0 {
+		h.ServerAddress = nullData[0]
 	}
 
 	// set the protocol version on the client.
