@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Tnze/go-mc v1.19.4
-	github.com/charmbracelet/log v0.2.3
+	github.com/charmbracelet/log v0.2.4
 	github.com/docker/docker v24.0.5+incompatible
 	github.com/function61/gokit v0.0.0-20230712092143-d63a51667e64
 	github.com/pkg/errors v0.9.1
@@ -19,7 +19,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/charmbracelet/lipgloss v0.7.1 // indirect
+	github.com/charmbracelet/lipgloss v0.8.0 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
