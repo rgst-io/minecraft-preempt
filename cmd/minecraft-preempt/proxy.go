@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"sync/atomic"
 	"time"
 
 	mcnet "github.com/Tnze/go-mc/net"
@@ -42,9 +41,6 @@ type Proxy struct {
 
 	// servers is a map of server hostnames to their server information.
 	servers map[string]*Server
-
-	// connections is the number of connections we have
-	connections atomic.Uint64
 }
 
 // NewProxy creates a new proxy
@@ -76,8 +72,8 @@ func (p *Proxy) watcher(ctx context.Context) error {
 		for serverAddress, server := range p.servers {
 			log := p.log.With("server", serverAddress)
 			// if we have connections, don't try to stop the server
-			if p.connections.Load() != 0 {
-				log.Info("Proxy status", "connections", p.connections.Load())
+			if server.connections.Load() != 0 {
+				log.Info("Proxy status", "connections", server.connections.Load())
 				continue
 			}
 
@@ -102,7 +98,7 @@ func (p *Proxy) watcher(ctx context.Context) error {
 			shouldShutdown := time.Since(emptySince) > server.config.ShutdownAfter
 			untilShutdown := time.Until(emptySince.Add(server.config.ShutdownAfter))
 
-			log.Info("Proxy status", "connections", p.connections.Load(), "shutdown_in", untilShutdown)
+			log.Info("Proxy status", "connections", server.connections.Load(), "shutdown_in", untilShutdown)
 			if shouldShutdown {
 				log.Info("No connections in configured time, stopping server")
 				if err := server.Stop(ctx); err != nil {
@@ -193,13 +189,13 @@ func (p *Proxy) accept(ctx context.Context) error {
 
 			// reset the emptySince time
 			server.emptySince.Store(nil)
-			p.connections.Add(1)
+			server.connections.Add(1)
 		},
 		OnClose: func() {
 			// only decrement if we made it to login state, where we
 			// would've incremented the connection count
 			if madeItToLogin {
-				p.connections.Add(^uint64(0))
+				server.connections.Add(^uint64(0))
 			}
 		},
 	})
@@ -226,21 +222,23 @@ func (p *Proxy) Stop(ctx context.Context) error {
 	}
 
 	// wait for all connections to drain
-	if p.connections.Load() > 0 {
-		p.log.Info("Waiting for connections to drain during shutdown")
+	for _, server := range p.servers {
+		if server.connections.Load() > 0 {
+			p.log.Info("Waiting for connections to drain during shutdown")
 
-		for {
-			// check if we have no connections
-			if p.connections.Load() == 0 {
-				break
-			}
+			for {
+				// check if we have no connections
+				if server.connections.Load() == 0 {
+					break
+				}
 
-			// sleep for 100ms
-			time.Sleep(100 * time.Millisecond)
+				// sleep for 100ms
+				time.Sleep(100 * time.Millisecond)
 
-			// handle context cancellation
-			if err := ctx.Err(); err != nil {
-				return err
+				// handle context cancellation
+				if err := ctx.Err(); err != nil {
+					return err
+				}
 			}
 		}
 	}

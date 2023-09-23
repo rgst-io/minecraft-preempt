@@ -50,6 +50,9 @@ type Server struct {
 	// emptySince is the time we've been empty (had no connections)
 	// since
 	emptySince atomic.Pointer[time.Time]
+
+	// connections is the number of connections we have
+	connections atomic.Uint64
 }
 
 // GetCloudProviderForConfig returns a cloud provider for the provided config
