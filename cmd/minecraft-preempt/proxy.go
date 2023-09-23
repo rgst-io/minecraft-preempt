@@ -223,8 +223,9 @@ func (p *Proxy) Stop(ctx context.Context) error {
 
 	// wait for all connections to drain
 	for _, server := range p.servers {
-		if server.connections.Load() > 0 {
-			p.log.Info("Waiting for connections to drain during shutdown")
+		connections := server.connections.Load()
+		if connections > 0 {
+			p.log.Info("Waiting for connections to drain during shutdown", "server", server.config.Hostname, "connections", connections)
 
 			for {
 				// check if we have no connections
