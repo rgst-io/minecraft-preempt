@@ -18,7 +18,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 
@@ -41,6 +40,10 @@ type Connection struct {
 	// s is the server we're proxying to
 	s *Server
 
+	// h is the handshake that the client sent when the proxy accepted the
+	// connection.
+	h *minecraft.Handshake
+
 	// hooks contains hooks that are called when certain events happen
 	// on the connection.
 	hooks *ConnectionHooks
@@ -62,9 +65,10 @@ type ConnectionHooks struct {
 	OnStatus func()
 }
 
-// NewConnection creates a new connection to the provided server
-func NewConnection(conn *mcnet.Conn, log *log.Logger, s *Server, h *ConnectionHooks) *Connection {
-	return &Connection{&minecraft.Client{Conn: conn}, log, s, h}
+// NewConnection creates a new connection to the provided server. The
+// provided handshake is replayed to the server.
+func NewConnection(mc *minecraft.Client, log *log.Logger, s *Server, h *minecraft.Handshake, hooks *ConnectionHooks) *Connection {
+	return &Connection{mc, log, s, h, hooks}
 }
 
 // Close closes the connection
@@ -86,8 +90,6 @@ func (c *Connection) status(ctx context.Context, status cloud.ProviderStatus) er
 		c.hooks.OnStatus()
 	}
 
-	c.log.Debug("Client is requesting status, sending status response")
-
 	var mcStatus *minecraft.Status
 
 	// attempt to get the status of the server from the server
@@ -98,7 +100,7 @@ func (c *Connection) status(ctx context.Context, status cloud.ProviderStatus) er
 			c.log.Warn("Failed to get server status", "err", err)
 			status = cloud.StatusUnknown
 		} else if mcStatus.Version != nil {
-			c.log.Debug("Remote server information",
+			c.log.Debug("Fetched remote server information",
 				"version.name", mcStatus.Version.Name,
 				"version.protocol", mcStatus.Version.Protocol,
 			)
@@ -159,6 +161,15 @@ func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState
 		return nil, errors.Wrap(err, "failed to get server status")
 	}
 
+	stateStr := "unknown"
+	switch state {
+	case minecraft.ClientStateCheck:
+		stateStr = "check (status)"
+	case minecraft.ClientStatePlayerLogin:
+		stateStr = "login"
+	}
+	c.log.Debug("Client post-handshake state", "state", stateStr)
+
 	switch state {
 	case minecraft.ClientStateCheck: // Status request
 		c.status(ctx, status)
@@ -188,7 +199,6 @@ func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState
 			c.hooks.OnLogin(login)
 		}
 
-		c.log.Debug("Client is requesting login, checking server status")
 		if status != cloud.StatusRunning {
 			c.log.Info("Server is not running, starting server")
 			if err := c.s.Start(ctx); err != nil {
@@ -216,17 +226,7 @@ func (c *Connection) Proxy(ctx context.Context) error {
 		c.hooks.OnConnect()
 	}
 
-	c.log.Info("Proxying connection", "client", c.Conn.Socket.RemoteAddr())
-	nextState, originalHandshake, err := c.Handshake()
-	if err != nil {
-		// don't log EOF
-		if !errors.Is(err, io.EOF) {
-			return errors.Wrap(err, "failed to handshake")
-		}
-		return nil
-	}
-
-	replayPackets, err := c.checkState(ctx, minecraft.ClientState(nextState))
+	replayPackets, err := c.checkState(ctx, minecraft.ClientState(c.h.NextState))
 	if err != nil {
 		return errors.Wrap(err, "failed to check server status")
 	}
@@ -235,7 +235,7 @@ func (c *Connection) Proxy(ctx context.Context) error {
 	}
 
 	sconf := c.s.config.Minecraft
-	c.log.Info("Creating connection to remote server", "host", sconf.Hostname, "port", sconf.Port)
+	c.log.Info("Proxying connection", "host", sconf.Hostname, "port", sconf.Port)
 	rconn, err := mcnet.DialMC(sconf.Hostname + ":" + strconv.Itoa(int(sconf.Port)))
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to remote")
@@ -243,8 +243,8 @@ func (c *Connection) Proxy(ctx context.Context) error {
 	defer rconn.Close()
 
 	// Replay the original handshake to the remote server
-	for _, p := range append([]*pk.Packet{originalHandshake}, replayPackets...) {
-		log.Debug("Replaying packet", "id", p.ID, "data", string(p.Data))
+	for _, p := range append([]*pk.Packet{c.h.Packet}, replayPackets...) {
+		c.log.Debug("Replaying packet", "id", p.ID, "data_len", len(p.Data))
 		if err := rconn.WritePacket(*p); err != nil {
 			return errors.Wrap(err, "failed to write handshake")
 		}
