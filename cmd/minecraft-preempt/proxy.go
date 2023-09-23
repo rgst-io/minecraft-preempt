@@ -230,15 +230,14 @@ func (p *Proxy) Stop(ctx context.Context) error {
 			for {
 				// check if we have no connections
 				if server.connections.Load() == 0 {
-					break
+					break // stop watching this server, but check others if present.
 				}
 
-				// sleep for 100ms
-				time.Sleep(100 * time.Millisecond)
-
-				// handle context cancellation
-				if err := ctx.Err(); err != nil {
-					return err
+				// wait before checking again, but also break if the context is cancelled
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case <-time.After(100 * time.Millisecond):
 				}
 			}
 		}
