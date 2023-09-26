@@ -45,6 +45,16 @@ var (
 	// to the underlying minecraft server. At this point it is no
 	// longer processed by the server.
 	EventHandOff eventbus.EventKey = "connection.handoff"
+
+	// EventConnectionClosed is emitted when a connection has been
+	// closed.
+	EventConnectionClosed eventbus.EventKey = "connection.closed"
+
+	// EventConnectionInitiated is emitted when a connection has been
+	// initiated. This is before the proxy has connected to the remote
+	// server. Use EventHandOff to know when the connection has been
+	// handed off to the server.
+	EventConnectionInitiated eventbus.EventKey = "connection.started"
 )
 
 // Connection is a connection to our proxy instance.
@@ -60,38 +70,19 @@ type Connection struct {
 	// h is the handshake that the client sent when the proxy accepted the
 	// connection.
 	h *minecraft.Handshake
-
-	// hooks contains hooks that are called when certain events happen
-	// on the connection.
-	hooks *ConnectionHooks
-}
-
-// ConnectionHooks are hooks that are called when certain events happen
-// on the connection.
-type ConnectionHooks struct {
-	// OnClose is called when the connection is closed
-	OnClose func()
-
-	// OnConnect is called when the connection is established
-	OnConnect func()
-
-	// OnLogin is called when the client sends a login packet
-	OnLogin func(*minecraft.LoginStart)
-
-	// OnStatus is called when the client sends a status packet
-	OnStatus func()
 }
 
 // NewConnection creates a new connection to the provided server. The
 // provided handshake is replayed to the server.
-func NewConnection(mc *minecraft.Client, log *log.Logger, s *Server, h *minecraft.Handshake, hooks *ConnectionHooks) *Connection {
-	return &Connection{mc, log, s, h, hooks}
+func NewConnection(mc *minecraft.Client, log *log.Logger, h *minecraft.Handshake, s *Server) *Connection {
+	return &Connection{mc, log, s, h}
+
 }
 
 // Close closes the connection
 func (c *Connection) Close() error {
-	if c.hooks.OnClose != nil {
-		c.hooks.OnClose()
+	if _, err := eventbus.Emit(EventConnectionClosed, c); err != nil {
+		c.log.With("err", err).Error("failed to emit connection closed event")
 	}
 	return c.Conn.Close()
 }
@@ -103,9 +94,7 @@ func (c *Connection) Close() error {
 // If the server is not running, it returns a status response with
 // the server's status.
 func (c *Connection) status(ctx context.Context, status cloud.ProviderStatus) error {
-	if c.hooks.OnStatus != nil {
-		c.hooks.OnStatus()
-	}
+	c.log.Debug("Client is requesting status, sending status response")
 
 	var mcStatus *minecraft.Status
 
@@ -244,8 +233,8 @@ func (c *Connection) checkState(ctx context.Context, state minecraft.ClientState
 
 // Proxy proxies the connection to the server
 func (c *Connection) Proxy(ctx context.Context) error {
-	if c.hooks.OnConnect != nil {
-		c.hooks.OnConnect()
+	if _, err := eventbus.Emit(EventConnectionInitiated, c); err != nil {
+		return errors.Wrap(err, "failed to run event handler(s)")
 	}
 
 	replayPackets, err := c.checkState(ctx, minecraft.ClientState(c.h.NextState))
