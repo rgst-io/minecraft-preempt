@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/Tnze/go-mc v1.19.4
-	github.com/charmbracelet/log v0.2.4
+	github.com/charmbracelet/log v0.2.5
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/function61/gokit v0.0.0-20231002081253-372832f232f1
 	github.com/pkg/errors v0.9.1
