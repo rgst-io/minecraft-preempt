@@ -25,6 +25,7 @@ import (
 	mcnet "github.com/Tnze/go-mc/net"
 	"github.com/charmbracelet/log"
 	"github.com/jaredallard/minecraft-preempt/internal/cloud"
+	"github.com/jaredallard/minecraft-preempt/internal/eventbus"
 	"github.com/jaredallard/minecraft-preempt/internal/minecraft"
 	"github.com/pkg/errors"
 )
@@ -175,30 +176,8 @@ func (p *Proxy) accept(ctx context.Context) error {
 	}
 	log = log.With("server", server.config.Hostname)
 
-	// tracks if this connection made it to the login state
-	// HACK(jaredallard): We should do something better than this.
-	var madeItToLogin bool
-
 	// create a new connection
-	conn := NewConnection(minecraftConn, log, server, h, &ConnectionHooks{
-		OnLogin: func(l *minecraft.LoginStart) {
-			log.Info("Login initiated", "username", l.Name)
-			// track that we made it to login state for connection
-			// tracking
-			madeItToLogin = true
-
-			// reset the emptySince time
-			server.emptySince.Store(nil)
-			server.connections.Add(1)
-		},
-		OnClose: func() {
-			// only decrement if we made it to login state, where we
-			// would've incremented the connection count
-			if madeItToLogin {
-				server.connections.Add(^uint64(0))
-			}
-		},
-	})
+	conn := NewConnection(minecraftConn, log, h, server)
 	connAddr := rawConn.Socket.RemoteAddr().String()
 
 	// proxy the connection in a goroutine
@@ -211,6 +190,31 @@ func (p *Proxy) accept(ctx context.Context) error {
 
 		p.log.Debug("Connection closed", "addr", connAddr)
 	}()
+
+	return nil
+}
+
+// registerEventHandlers registers events handles for the proxy.
+func (p *Proxy) registerEventHandlers() error {
+	// track a connection once it has made it to the login state
+	if err := eventbus.RegisterHandler(EventLoginSuccess, func(l *minecraft.LoginStart) error {
+		p.log.Info("Login initiated", "username", l.Name)
+
+		// reset the emptySince time
+		p.emptySince.Store(nil)
+		p.connections.Add(1)
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	// remove a connection once it has been closed
+	if err := eventbus.RegisterHandler(EventConnectionClosed, func() {
+		p.connections.Add(^uint64(0))
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }

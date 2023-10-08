@@ -7,11 +7,13 @@ require (
 	github.com/charmbracelet/log v0.2.5
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/function61/gokit v0.0.0-20231002081253-372832f232f1
+	github.com/google/go-cmp v0.5.9
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.7.0
 	golang.org/x/oauth2 v0.13.0
 	google.golang.org/api v0.145.0
 	gopkg.in/yaml.v3 v3.0.1
+	gotest.tools/v3 v3.4.0
 )
 
 require (
@@ -59,5 +61,4 @@ require (
 	google.golang.org/grpc v1.58.2 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	gotest.tools/v3 v3.4.0 // indirect
 )
