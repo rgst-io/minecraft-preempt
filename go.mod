@@ -8,7 +8,7 @@ require (
 	github.com/docker/docker v24.0.6+incompatible
 	github.com/function61/gokit v0.0.0-20231002081253-372832f232f1
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	golang.org/x/oauth2 v0.14.0
 	google.golang.org/api v0.145.0
 	gopkg.in/yaml.v3 v3.0.1
