@@ -6,7 +6,7 @@ require (
 	github.com/Tnze/go-mc v1.19.4
 	github.com/charmbracelet/log v0.2.5
 	github.com/docker/docker v24.0.7+incompatible
-	github.com/function61/gokit v0.0.0-20231002081253-372832f232f1
+	github.com/function61/gokit v0.0.0-20231020102821-0610aaf31f32
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/oauth2 v0.14.0
