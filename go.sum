@@ -49,6 +49,8 @@ github.com/function61/gokit v0.0.0-20231002081253-372832f232f1 h1:zOwGlpkoveS4Q/
 github.com/function61/gokit v0.0.0-20231002081253-372832f232f1/go.mod h1:sJY957+7ush4oj4ElOMhUFaFIriAFNAGYzVh2tFJNy0=
 github.com/function61/gokit v0.0.0-20231020102821-0610aaf31f32 h1:a5qgwiHpd76kHzXhy8Mi/oH/iiaxub+dNgXPv4uyeXA=
 github.com/function61/gokit v0.0.0-20231020102821-0610aaf31f32/go.mod h1:sJY957+7ush4oj4ElOMhUFaFIriAFNAGYzVh2tFJNy0=
+github.com/function61/gokit v0.0.0-20231117065306-355fe206d542 h1:a9BTN+DOboRkVih0suT4zrRZ4zLGFpBtHPGNd+EQ4pI=
+github.com/function61/gokit v0.0.0-20231117065306-355fe206d542/go.mod h1:sJY957+7ush4oj4ElOMhUFaFIriAFNAGYzVh2tFJNy0=
 github.com/go-logfmt/logfmt v0.6.0 h1:wGYYu3uicYdqXVgoYbvnkrPVXkuLM1p1ifugDMEdRi4=
 github.com/go-logfmt/logfmt v0.6.0/go.mod h1:WYhtIu8zTZfxdn5+rREduYbwxfcBr/Vr6KEVveWlfTs=
 github.com/gogo/protobuf v1.3.2 h1:Ov1cvc58UF3b5XjBnZv7+opcTcQFZebYjWzi34vdm4Q=
