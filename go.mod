@@ -3,7 +3,7 @@ module github.com/jaredallard/minecraft-preempt
 go 1.21
 
 require (
-	github.com/Tnze/go-mc v1.19.4
+	github.com/Tnze/go-mc v1.20.1
 	github.com/charmbracelet/log v0.3.0
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/function61/gokit v0.0.0-20231117065306-355fe206d542
