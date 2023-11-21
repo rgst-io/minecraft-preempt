@@ -75,8 +75,16 @@ func entrypoint(cCmd *cobra.Command, args []string) error {
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", dc, "up")
 	cmd.Stdout = prefixer.New(os.Stdout, func() string { return "[docker-compose] " })
 	cmd.Stderr = prefixer.New(os.Stderr, func() string { return "[docker-compose] " })
-	// Process group will handle the signal, so we don't need to kill it ourselves.
-	cmd.Cancel = func() error { return nil }
+
+	// Start the process in a new process group so we can kill it and all
+	// of its children reliably. This also detaches ^C (sent to us) from
+	// killing the child process, instead allowing our context cancel to
+	// do that.
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Cancel = func() error {
+		// Send SIGINT to the child process group.
+		return syscall.Kill(-cmd.Process.Pid, syscall.SIGINT)
+	}
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to start '%s': %w", cmd.String(), err)
@@ -121,13 +129,14 @@ func watcher(ctx context.Context, cancel context.CancelFunc, cloudProvider strin
 
 	// Start the watcher.
 	go func() {
-		t := time.NewTicker(5 * time.Second)
+		t := time.NewTicker(2 * time.Second)
 		defer t.Stop()
 
 		for {
 			// If we're canceled, exit.
 			select {
 			case <-ctx.Done():
+				log.Debug("context canceled, exiting watcher")
 				return
 			case <-t.C:
 				shouldStop, err := c.ShouldTerminate(ctx)
@@ -144,6 +153,8 @@ func watcher(ctx context.Context, cancel context.CancelFunc, cloudProvider strin
 			}
 		}
 	}()
+
+	log.Info("started preemption watcher")
 
 	return nil
 }

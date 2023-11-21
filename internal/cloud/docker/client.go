@@ -17,6 +17,7 @@ package docker
 
 import (
 	"context"
+	"os"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -98,6 +99,11 @@ func (c *Client) Stop(ctx context.Context, containerID string) error {
 
 // ShouldTerminate returns true if the instance should be terminated.
 func (c *Client) ShouldTerminate(ctx context.Context) (bool, error) {
+	// Here for tests, if `shutdown.txt` exists, shutdown.
+	if _, err := os.Stat("shutdown.txt"); err == nil {
+		return true, nil
+	}
+
 	// There is currently no dynamic system in place to restart in the
 	// case of using Docker.
 	return false, nil
