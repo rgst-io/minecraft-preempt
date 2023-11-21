@@ -3,11 +3,12 @@ module github.com/jaredallard/minecraft-preempt
 go 1.21
 
 require (
-	cloud.google.com/go/compute v1.23.1
+	cloud.google.com/go/compute v1.23.3
 	cloud.google.com/go/compute/metadata v0.2.3
-	github.com/Tnze/go-mc v1.19.4
+	github.com/Tnze/go-mc v1.20.1
 	github.com/charmbracelet/log v0.3.0
 	github.com/docker/docker v24.0.7+incompatible
+	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
 	github.com/function61/gokit v0.0.0-20231117065306-355fe206d542
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.0
@@ -21,7 +22,6 @@ require (
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -30,7 +30,6 @@ require (
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
-	github.com/goware/prefixer v0.0.0-20160118172347-395022866408 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
