@@ -24,8 +24,8 @@ import (
 
 	mcnet "github.com/Tnze/go-mc/net"
 	"github.com/charmbracelet/log"
-	"github.com/jaredallard/minecraft-preempt/internal/cloud"
-	"github.com/jaredallard/minecraft-preempt/internal/minecraft"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/minecraft"
 	"github.com/pkg/errors"
 )
 

@@ -1,4 +1,4 @@
-module github.com/jaredallard/minecraft-preempt
+module github.com/jaredallard/minecraft-preempt/v3
 
 go 1.21
 

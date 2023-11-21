@@ -22,7 +22,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	dockerclient "github.com/docker/docker/client"
-	"github.com/jaredallard/minecraft-preempt/internal/cloud"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
 	"github.com/pkg/errors"
 )
 

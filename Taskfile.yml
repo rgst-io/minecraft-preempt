@@ -15,7 +15,7 @@ tasks:
       - "./**/*.go"
       - .tool-versions # Trigger rebuild on Go version changes.
     cmds:
-      - go build -trimpath -v -o ./bin/ -ldflags="-X github.com/jaredallard/minecraft-preempt/internal/version.Version=dev" ./cmd/...
+      - go build -trimpath -v -o ./bin/ -ldflags="-X github.com/jaredallard/minecraft-preempt/v3/internal/version.Version=dev" ./cmd/...
   snapshot:
     cmds:
       - goreleaser --snapshot --clean

@@ -34,10 +34,10 @@ import (
 
 	logger "github.com/charmbracelet/log"
 	"github.com/egym-playground/go-prefix-writer/prefixer"
-	"github.com/jaredallard/minecraft-preempt/internal/cloud"
-	"github.com/jaredallard/minecraft-preempt/internal/cloud/docker"
-	"github.com/jaredallard/minecraft-preempt/internal/cloud/gcp"
-	"github.com/jaredallard/minecraft-preempt/internal/version"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/docker"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/gcp"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/version"
 	"github.com/spf13/cobra"
 )
 

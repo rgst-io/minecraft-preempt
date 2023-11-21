@@ -25,8 +25,8 @@ import (
 	pk "github.com/Tnze/go-mc/net/packet"
 	"github.com/charmbracelet/log"
 	"github.com/function61/gokit/io/bidipipe"
-	"github.com/jaredallard/minecraft-preempt/internal/cloud"
-	"github.com/jaredallard/minecraft-preempt/internal/minecraft"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/minecraft"
 	"github.com/pkg/errors"
 )
 

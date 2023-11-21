@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jaredallard/minecraft-preempt/internal/cloud"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
 
 	compute "cloud.google.com/go/compute/apiv1"
 	"cloud.google.com/go/compute/apiv1/computepb"

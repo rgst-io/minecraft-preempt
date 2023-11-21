@@ -23,11 +23,11 @@ import (
 
 	mcnet "github.com/Tnze/go-mc/net"
 	"github.com/charmbracelet/log"
-	"github.com/jaredallard/minecraft-preempt/internal/cloud"
-	"github.com/jaredallard/minecraft-preempt/internal/cloud/docker"
-	"github.com/jaredallard/minecraft-preempt/internal/cloud/gcp"
-	"github.com/jaredallard/minecraft-preempt/internal/config"
-	"github.com/jaredallard/minecraft-preempt/internal/minecraft"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/docker"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/gcp"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/config"
+	"github.com/jaredallard/minecraft-preempt/v3/internal/minecraft"
 )
 
 // Server is a proxy server
