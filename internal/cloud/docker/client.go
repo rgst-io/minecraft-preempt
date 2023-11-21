@@ -95,3 +95,10 @@ func (c *Client) Stop(ctx context.Context, containerID string) error {
 
 	return c.d.ContainerStop(ctx, cont.ID, container.StopOptions{})
 }
+
+// ShouldTerminate returns true if the instance should be terminated.
+func (c *Client) ShouldTerminate(ctx context.Context) (bool, error) {
+	// There is currently no dynamic system in place to restart in the
+	// case of using Docker.
+	return false, nil
+}
