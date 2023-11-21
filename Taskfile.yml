@@ -1,0 +1,21 @@
+version: "3"
+
+tasks:
+  default:
+    cmds:
+      - task: build
+  test:
+    cmds:
+      - go test -v ./...
+  build:
+    generates:
+      - bin/minecraft-preempt
+      - bin/minecraft-preempt-agent
+    sources:
+      - "./**/*.go"
+      - .tool-versions # Trigger rebuild on Go version changes.
+    cmds:
+      - go build -trimpath -v -o ./bin/ -ldflags="-X github.com/jaredallard/minecraft-preempt/internal/version.Version=dev" ./cmd/...
+  snapshot:
+    cmds:
+      - goreleaser --snapshot --clean

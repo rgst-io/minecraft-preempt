@@ -4,10 +4,16 @@ project_name: minecraft-preempt
 before:
   hooks:
     - go mod download
+env:
+  - CGO_ENABLED=0
 builds:
-  - main: ./cmd/minecraft-preempt
-    env:
-      - CGO_ENABLED=0
+  - &default
+    id: minecraft-preempt
+    main: ./cmd/minecraft-preempt
+    gcflags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/jaredallard/minecraft-preempt/internal/version.Version={{ .Version }}
     goarch:
       - amd64
       - arm64
@@ -15,9 +21,21 @@ builds:
       - linux
       - windows
       - darwin
+  - <<: *default
+    id: &name minecraft-preempt-agent
+    binary: *name
+    main: ./cmd/minecraft-preempt-agent
+
+# Verifiable builds.
+gomod:
+  proxy: true
+  env:
+    - GOPROXY=https://proxy.golang.org,direct
+    - GOSUMDB=sum.golang.org
+  mod: mod
 
 archives:
-  - format: tar.gz
+  - format: tar.xz
     # use zip for windows archives
     format_overrides:
       - goos: windows

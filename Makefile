@@ -1,24 +1,6 @@
-# go options
-GO         ?= go
-PKG        := go mod download
-LDFLAGS    := -w -s
-BINDIR     := $(CURDIR)/bin
-
-# Required for globs to work correctly
-SHELL=/bin/bash
-
-.PHONY: all
-all: build
-
-.PHONY: dep
-dep:
-	@$(PKG)
+SHELL := /usr/bin/env bash
 
 .PHONY: build
 build:
-	CGO_ENABLED=0 $(GO) build -v -o $(BINDIR)/ -ldflags '$(LDFLAGS)' ./cmd/...
-
-.PHONY: reload
-reload:
-	@echo "Watching for changes to .go files..."
-	@go run github.com/cespare/reflex@latest --regex='\.go$$' --decoration=fancy --start-service=true bash -- -c 'make build && exec ./bin/minecraft-preempt'
+	@command -v task >/dev/null || (echo "task not found, please install it. https://taskfile.dev/installation/" && exit 1)
+	@task

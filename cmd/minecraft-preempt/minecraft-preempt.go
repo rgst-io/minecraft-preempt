@@ -31,11 +31,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/jaredallard/minecraft-preempt/internal/config"
+	"github.com/jaredallard/minecraft-preempt/internal/version"
 )
 
 // rootCmd is the root command used by cobra
 var rootCmd = &cobra.Command{
-	Use: "minecraft-preempt",
+	Use:     "minecraft-preempt",
+	Version: version.Version,
 
 	Short: "minecraft-preempt is a proxy for minecraft servers that can start and stop them",
 	Long: `minecraft-preempt is a proxy for minecraft servers that can start and stop them based on ` +
