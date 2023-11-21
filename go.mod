@@ -3,20 +3,19 @@ module github.com/jaredallard/minecraft-preempt
 go 1.21
 
 require (
-	github.com/Tnze/go-mc v1.19.4
+	cloud.google.com/go/compute v1.23.3
+	cloud.google.com/go/compute/metadata v0.2.3
+	github.com/Tnze/go-mc v1.20.1
 	github.com/charmbracelet/log v0.3.0
 	github.com/docker/docker v24.0.7+incompatible
+	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
 	github.com/function61/gokit v0.0.0-20231117065306-355fe206d542
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.0
-	golang.org/x/oauth2 v0.14.0
-	google.golang.org/api v0.151.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-	cloud.google.com/go/compute v1.23.1 // indirect
-	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/lipgloss v0.9.1 // indirect
@@ -50,12 +49,15 @@ require (
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
+	golang.org/x/oauth2 v0.14.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.14.0 // indirect
+	google.golang.org/api v0.151.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20231016165738-49dd2c1f3d0b // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231016165738-49dd2c1f3d0b // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231030173426-d783a09b4405 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect

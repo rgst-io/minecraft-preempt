@@ -57,4 +57,7 @@ type Provider interface {
 
 	// Stop stops a remote instance
 	Stop(ctx context.Context, instanceID string) error
+
+	// ShouldTerminate returns true if the instance should be terminated.
+	ShouldTerminate(ctx context.Context) (bool, error)
 }

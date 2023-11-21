@@ -18,12 +18,14 @@ package gcp
 import (
 	"context"
 	"errors"
-	"net/http"
+	"fmt"
+	"strings"
 
 	"github.com/jaredallard/minecraft-preempt/internal/cloud"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/option"
+
+	compute "cloud.google.com/go/compute/apiv1"
+	"cloud.google.com/go/compute/apiv1/computepb"
+	"cloud.google.com/go/compute/metadata"
 )
 
 var (
@@ -34,8 +36,8 @@ var (
 
 // Client is a gcs client
 type Client struct {
-	gclient *http.Client
-	compute *compute.Service
+	compute  *compute.InstancesClient
+	metadata *metadata.Client
 
 	project string
 	zone    string
@@ -43,34 +45,32 @@ type Client struct {
 
 // NewClient creates a new client
 func NewClient(ctx context.Context, project, zone string) (*Client, error) {
-	client, err := google.DefaultClient(ctx, compute.ComputeScope)
-	if err != nil {
-		return nil, err
-	}
-
-	comp, err := compute.NewService(ctx, option.WithHTTPClient(client))
+	computeCli, err := compute.NewInstancesRESTClient(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Client{
-		gclient: client,
-		compute: comp,
-		project: project,
-		zone:    zone,
+		compute:  computeCli,
+		metadata: metadata.NewClient(nil),
+		project:  project,
+		zone:     zone,
 	}, nil
 }
 
 // Status returns the status of an instance
 func (c *Client) Status(ctx context.Context, instanceID string) (cloud.ProviderStatus, error) {
-	gr := c.compute.Instances.Get(c.project, c.zone, instanceID)
-	i, err := gr.Do()
+	inst, err := c.compute.Get(ctx, &computepb.GetInstanceRequest{
+		Project:  c.project,
+		Zone:     c.zone,
+		Instance: instanceID,
+	})
 	if err != nil {
 		return "", err
 	}
 
 	// HACK: handle invalid statuses
-	st := cloud.ProviderStatus(i.Status)
+	st := cloud.ProviderStatus(inst.GetStatus())
 	switch st {
 	case cloud.StatusRunning, cloud.StatusStarting, cloud.StatusStopping, cloud.StatusStopped:
 	case "TERMINATED":
@@ -82,7 +82,7 @@ func (c *Client) Status(ctx context.Context, instanceID string) (cloud.ProviderS
 	}
 
 	// convert some of the types to "Starting"
-	if i.Status == "STAGING" || i.Status == "PROVISIONING" {
+	if inst.GetStatus() == "STAGING" || inst.GetStatus() == "PROVISIONING" {
 		st = cloud.StatusStarting
 	}
 
@@ -91,23 +91,48 @@ func (c *Client) Status(ctx context.Context, instanceID string) (cloud.ProviderS
 
 // Start a instance if it's not already running
 func (c *Client) Start(ctx context.Context, instanceID string) error {
-	gr := c.compute.Instances.Get(c.project, c.zone, instanceID)
-	i, err := gr.Do()
+	inst, err := c.compute.Get(ctx, &computepb.GetInstanceRequest{
+		Project:  c.project,
+		Zone:     c.zone,
+		Instance: instanceID,
+	})
 	if err != nil {
 		return err
 	}
 
-	if i.Status != "STOPPED" && i.Status != "TERMINATED" {
+	if inst.GetStatus() != "STOPPED" && inst.GetStatus() != "TERMINATED" {
 		return ErrNotStopped
 	}
 
-	sr := c.compute.Instances.Start(c.project, c.zone, instanceID)
-	_, err = sr.Do()
+	_, err = c.compute.Start(ctx, &computepb.StartInstanceRequest{
+		Project:  c.project,
+		Zone:     c.zone,
+		Instance: instanceID,
+	})
 	return err
 }
 
 // Stop a instance if it's not already stopped
 func (c *Client) Stop(ctx context.Context, instanceID string) error {
-	_, err := c.compute.Instances.Stop(c.project, c.zone, instanceID).Do()
+	_, err := c.compute.Stop(ctx, &computepb.StopInstanceRequest{
+		Project:  c.project,
+		Zone:     c.zone,
+		Instance: instanceID,
+	})
 	return err
+}
+
+// ShouldTerminate checks the current instance's status to see if it's
+// being preempted or terminated. If so, it  returns true.
+func (c *Client) ShouldTerminate(ctx context.Context) (bool, error) {
+	resp, err := c.metadata.Get("instance/preempted")
+	if err != nil {
+		return false, fmt.Errorf("failed to determine if instance is being preempted")
+	}
+
+	if strings.EqualFold(strings.TrimSpace(resp), "TRUE") {
+		return true, nil
+	}
+
+	return false, nil
 }

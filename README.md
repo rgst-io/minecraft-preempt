@@ -9,6 +9,8 @@ A lightweight Minecraft server manager. Starts a server when users join, and sto
 
 ## Usage
 
+**Hint**: There's an example configuration in [`./config`](./config).
+
 First, define a configuration file for your server. The format is like so:
 
 ### Top level
