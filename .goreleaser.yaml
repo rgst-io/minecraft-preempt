@@ -19,7 +19,7 @@ builds:
       - arm64
     goos:
       - linux
-      - windows
+      # - windows # Disabled for now.
       - darwin
   - <<: *default
     id: &name minecraft-preempt-agent
