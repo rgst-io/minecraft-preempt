@@ -19,6 +19,6 @@ jobs:
           go-version: "1.21.1"
           cache: false # golangci-lint does it's own caching of this.
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v4
         with:
           version: v1.54.2
