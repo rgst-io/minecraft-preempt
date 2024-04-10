@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3
 	github.com/Tnze/go-mc v1.20.1
 	github.com/charmbracelet/log v0.4.0
-	github.com/docker/docker v24.0.7+incompatible
+	github.com/docker/docker v26.0.0+incompatible
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
 	github.com/function61/gokit v0.0.0-20240321114127-797a00fcb45f
 	github.com/pkg/errors v0.9.1
@@ -19,6 +19,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/lipgloss v0.10.0 // indirect
+	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
@@ -38,6 +39,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/term v0.0.0-20221205130635-1aeaba878587 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
