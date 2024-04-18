@@ -125,7 +125,7 @@ func (c *Client) Stop(ctx context.Context, instanceID string) error {
 // ShouldTerminate checks the current instance's status to see if it's
 // being preempted or terminated. If so, it  returns true.
 func (c *Client) ShouldTerminate(ctx context.Context) (bool, error) {
-	resp, err := c.metadata.Get("instance/preempted")
+	resp, err := c.metadata.GetWithContext(ctx, "instance/preempted")
 	if err != nil {
 		return false, fmt.Errorf("failed to determine if instance is being preempted")
 	}
