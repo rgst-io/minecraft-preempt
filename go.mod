@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	cloud.google.com/go/compute v1.25.1
-	cloud.google.com/go/compute/metadata v0.2.3
+	cloud.google.com/go/compute/metadata v0.3.0
 	github.com/Tnze/go-mc v1.20.1
 	github.com/charmbracelet/log v0.4.0
 	github.com/docker/docker v26.0.0+incompatible
