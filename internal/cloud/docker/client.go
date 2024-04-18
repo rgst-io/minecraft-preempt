@@ -19,7 +19,6 @@ import (
 	"context"
 	"os"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
@@ -59,7 +58,7 @@ func (c *Client) Start(ctx context.Context, containerID string) error {
 		return ErrNotStopped
 	}
 
-	return c.d.ContainerStart(ctx, cont.ID, types.ContainerStartOptions{})
+	return c.d.ContainerStart(ctx, cont.ID, container.StartOptions{})
 }
 
 // Status returns the status of a container
