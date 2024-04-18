@@ -3,43 +3,28 @@
 project_name: minecraft-preempt
 before:
   hooks:
-    - go mod download
-env:
-  - CGO_ENABLED=0
+    - go mod tidy
 builds:
   - &default
-    id: minecraft-preempt
-    main: ./cmd/minecraft-preempt
-    gcflags:
+    id: "{{ .ProjectName }}"
+    main: ./cmd/{{ .ProjectName }}
+    flags:
       - -trimpath
     ldflags:
-      - -s -w -X github.com/jaredallard/minecraft-preempt/v3/internal/version.Version={{ .Version }}
+      - -s
+      - -w
+    env:
+      - CGO_ENABLED=0
     goarch:
       - amd64
       - arm64
     goos:
       - linux
-      # - windows # Disabled for now.
       - darwin
   - <<: *default
     id: &name minecraft-preempt-agent
     binary: *name
     main: ./cmd/minecraft-preempt-agent
-
-# Verifiable builds.
-gomod:
-  proxy: true
-  env:
-    - GOPROXY=https://proxy.golang.org,direct
-    - GOSUMDB=sum.golang.org
-  mod: mod
-
-archives:
-  - format: tar.xz
-    # use zip for windows archives
-    format_overrides:
-      - goos: windows
-        format: zip
 dockers:
   # amd64
   - use: buildx
@@ -54,7 +39,7 @@ dockers:
       - --label=org.opencontainers.image.revision={{ .FullCommit }}
       - --label=org.opencontainers.image.licenses=GPL-3.0
     image_templates:
-      - "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}-amd64"
+      - "ghcr.io/jaredallard/{{ .ProjectName }}:{{ .Version }}-amd64"
   # arm64
   - use: buildx
     goos: linux
@@ -70,19 +55,46 @@ dockers:
       - --label=org.opencontainers.image.revision={{ .FullCommit }}
       - --label=org.opencontainers.image.licenses=GPL-3.0
     image_templates:
-      - "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}-arm64"
+      - "ghcr.io/jaredallard/{{ .ProjectName }}:{{ .Version }}-arm64"
 docker_manifests:
-  - name_template: "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}"
+  - name_template: "ghcr.io/jaredallard/{{ .ProjectName }}:{{ .Version }}"
     image_templates:
-      - "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}-arm64"
-      - "ghcr.io/jaredallard/{{.ProjectName}}:{{ .Version }}-amd64"
+      - "ghcr.io/jaredallard/{{ .ProjectName }}:{{ .Version }}-arm64"
+      - "ghcr.io/jaredallard/{{ .ProjectName }}:{{ .Version }}-amd64"
+archives:
+  - format: tar.xz
 checksum:
   name_template: "checksums.txt"
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
+  use: git
   filters:
     exclude:
-      - "^docs:"
       - "^test:"
+      - "^chore:"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: Dependency updates
+      regexp: "^.*(feat|chore|fix)\\(deps\\)*:+.*$"
+      order: 300
+    - title: "New Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 100
+    - title: "Bug fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 200
+    - title: "Documentation updates"
+      regexp: "^.*docs[(\\w)]*:+.*$"
+      order: 400
+    - title: Other work
+      order: 9999
+
+release:
+  footer: |-
+    **Full Changelog**: https://github.com/jaredallard/minecraft-preempt/compare/{{ .PreviousTag }}...{{ .Tag }}

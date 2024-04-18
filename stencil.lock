@@ -1,0 +1,27 @@
+version: (devel)
+modules:
+    - name: github.com/rgst-io/stencil-golang
+      url: https://github.com/rgst-io/stencil-golang
+      version: v0.3.1
+files:
+    - name: .github/settings.yml
+      template: .github/settings.yml.tpl
+      module: github.com/rgst-io/stencil-golang
+    - name: .github/workflows/release.yaml
+      template: .github/workflows/release.yaml.tpl
+      module: github.com/rgst-io/stencil-golang
+    - name: .github/workflows/tests.yaml
+      template: .github/workflows/tests.yaml.tpl
+      module: github.com/rgst-io/stencil-golang
+    - name: .goreleaser.yaml
+      template: .goreleaser.yaml.tpl
+      module: github.com/rgst-io/stencil-golang
+    - name: .mise.toml
+      template: .mise.toml.tpl
+      module: github.com/rgst-io/stencil-golang
+    - name: CONTRIBUTING.md
+      template: CONTRIBUTING.md.tpl
+      module: github.com/rgst-io/stencil-golang
+    - name: LICENSE
+      template: LICENSE_GPL-3.0.tpl
+      module: github.com/rgst-io/stencil-golang

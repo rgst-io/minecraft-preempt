@@ -1,0 +1,6 @@
+name: minecraft-preempt
+arguments:
+  org: jaredallard
+  license: GPL-3.0
+modules:
+- name: github.com/rgst-io/stencil-golang
