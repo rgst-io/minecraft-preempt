@@ -5,7 +5,7 @@ go 1.21
 require (
 	cloud.google.com/go/compute v1.26.0
 	cloud.google.com/go/compute/metadata v0.3.0
-	github.com/Tnze/go-mc v1.20.1
+	github.com/Tnze/go-mc v1.20.2
 	github.com/charmbracelet/log v0.4.0
 	github.com/docker/docker v26.1.0+incompatible
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
