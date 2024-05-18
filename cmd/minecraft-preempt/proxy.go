@@ -134,7 +134,7 @@ func (p *Proxy) Start(ctx context.Context) error {
 		}
 	}()
 
-	connChan := make(chan mcnet.Conn)
+	connChan := make(chan *mcnet.Conn)
 	go func() {
 		for {
 			conn, err := p.accept()
@@ -165,8 +165,10 @@ func (p *Proxy) Start(ctx context.Context) error {
 	}
 }
 
-func (p *Proxy) handleConnection(ctx context.Context, rawConn mcnet.Conn) error {
-	minecraftConn := &minecraft.Client{Conn: &rawConn}
+func (p *Proxy) handleConnection(ctx context.Context, rawConn *mcnet.Conn) error {
+	minecraftConn := &minecraft.Client{
+		Conn: rawConn,
+	}
 
 	log := p.log.With("client", rawConn.Socket.RemoteAddr())
 	h, err := minecraftConn.Handshake()
@@ -227,20 +229,20 @@ func (p *Proxy) handleConnection(ctx context.Context, rawConn mcnet.Conn) error 
 }
 
 // accept accepts a connection on the proxy listener.
-func (p *Proxy) accept() (mcnet.Conn, error) {
+func (p *Proxy) accept() (*mcnet.Conn, error) {
 	// TODO(george-e-shaw-iv): Someone needs to go and make the underlying library respect context with net.ListenConfig.
 	rawConn, err := p.Listener.Accept()
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			return mcnet.Conn{}, err // Context cancellation is a real error.
+			return nil, err // Context cancellation is a real error.
 		} else if errors.Is(err, net.ErrClosed) {
-			return mcnet.Conn{}, nil // Closed connections are fine.
+			return nil, nil // Closed connections are fine.
 		}
 
 		// All other errors are unknown and bad.
-		return mcnet.Conn{}, fmt.Errorf("failed to accept connection: %w", err)
+		return nil, fmt.Errorf("failed to accept connection: %w", err)
 	}
-	return rawConn, nil
+	return &rawConn, nil
 }
 
 // Stop stops the server
