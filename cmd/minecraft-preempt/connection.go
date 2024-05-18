@@ -85,7 +85,7 @@ func (c *Connection) Close() error {
 //
 // If the server is not running, it returns a status response with
 // the server's status.
-func (c *Connection) status(ctx context.Context, status cloud.ProviderStatus) error {
+func (c *Connection) status(_ context.Context, status cloud.ProviderStatus) error {
 	if c.hooks.OnStatus != nil {
 		c.hooks.OnStatus()
 	}
