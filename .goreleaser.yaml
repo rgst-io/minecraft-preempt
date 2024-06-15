@@ -35,14 +35,14 @@ dockers:
       - --platform=linux/amd64
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.description={{ .ProjectName }}
-      - --label=org.opencontainers.image.url=https://github.com/jaredallard/{{ .ProjectName }}
-      - --label=org.opencontainers.image.source=https://github.com/jaredallard/{{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/rgst-io/{{ .ProjectName }}
+      - --label=org.opencontainers.image.source=https://github.com/rgst-io/{{ .ProjectName }}
       - --label=org.opencontainers.image.version={{ .Version }}
       - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
       - --label=org.opencontainers.image.revision={{ .FullCommit }}
       - --label=org.opencontainers.image.licenses=GPL-3.0
     image_templates:
-      - "ghcr.io/jaredallard/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "ghcr.io/rgst-io/{{ .ProjectName }}:{{ .Version }}-amd64"
   # arm64
   - use: buildx
     goos: linux
@@ -51,19 +51,19 @@ dockers:
       - --platform=linux/arm64
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.description={{ .ProjectName }}
-      - --label=org.opencontainers.image.url=https://github.com/jaredallard/{{ .ProjectName }}
-      - --label=org.opencontainers.image.source=https://github.com/jaredallard/{{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/rgst-io/{{ .ProjectName }}
+      - --label=org.opencontainers.image.source=https://github.com/rgst-io/{{ .ProjectName }}
       - --label=org.opencontainers.image.version={{ .Version }}
       - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
       - --label=org.opencontainers.image.revision={{ .FullCommit }}
       - --label=org.opencontainers.image.licenses=GPL-3.0
     image_templates:
-      - "ghcr.io/jaredallard/{{ .ProjectName }}:{{ .Version }}-arm64"
+      - "ghcr.io/rgst-io/{{ .ProjectName }}:{{ .Version }}-arm64"
 docker_manifests:
-  - name_template: "ghcr.io/jaredallard/{{ .ProjectName }}:{{ .Version }}"
+  - name_template: "ghcr.io/rgst-io/{{ .ProjectName }}:{{ .Version }}"
     image_templates:
-      - "ghcr.io/jaredallard/{{ .ProjectName }}:{{ .Version }}-arm64"
-      - "ghcr.io/jaredallard/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "ghcr.io/rgst-io/{{ .ProjectName }}:{{ .Version }}-arm64"
+      - "ghcr.io/rgst-io/{{ .ProjectName }}:{{ .Version }}-amd64"
 archives:
   - format: tar.xz
 checksum:
@@ -100,4 +100,4 @@ changelog:
 
 release:
   footer: |-
-    **Full Changelog**: https://github.com/jaredallard/minecraft-preempt/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/rgst-io/minecraft-preempt/compare/{{ .PreviousTag }}...{{ .Tag }}
