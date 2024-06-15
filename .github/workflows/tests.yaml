@@ -29,7 +29,8 @@ jobs:
         run: |
           gotestsum -- -coverprofile=cover.out ./...
       - name: Upload test coverage
-        uses: codecov/codecov-action@v4.4.0
+        uses: codecov/codecov-action@v4
+        continue-on-error: true # Broken for some reason.
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./cover.out
