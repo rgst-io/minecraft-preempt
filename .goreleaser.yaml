@@ -1,18 +1,21 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj
+version: 2
 project_name: minecraft-preempt
+
 before:
   hooks:
     - go mod tidy
 builds:
   - &default
-    id: "{{ .ProjectName }}"
+    id: minecraft-preempt
     main: ./cmd/{{ .ProjectName }}
     flags:
       - -trimpath
     ldflags:
       - -s
       - -w
+      - -X github.com/jaredallard/minecraft-preempt/v3/internal/version.Version={{ .Version }}
     env:
       - CGO_ENABLED=0
     goarch:
