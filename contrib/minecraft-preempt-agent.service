@@ -1,0 +1,14 @@
+[Unit]
+Description=Minecraft Preempt Agent
+After=network.target
+
+[Service]
+ExecStart=minecraft-preempt-agent
+# Change to the path where your docker-compose file is.
+WorkingDirectory=/home/worker/minecraft
+User=ubuntu
+Group=ubuntu
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
