@@ -33,7 +33,6 @@ import (
 	"time"
 
 	logger "github.com/charmbracelet/log"
-	"github.com/egym-playground/go-prefix-writer/prefixer"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/docker"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/gcp"
@@ -72,9 +71,9 @@ func entrypoint(cCmd *cobra.Command, args []string) error {
 
 	log.With("version", version.Version, "cloud", cloudProvider).Info("starting agent")
 
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", dc, "up")
-	cmd.Stdout = prefixer.New(os.Stdout, func() string { return "[docker-compose] " })
-	cmd.Stderr = prefixer.New(os.Stderr, func() string { return "[docker-compose] " })
+	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", dc, "up", "--no-log-prefix")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	// Start the process in a new process group so we can kill it and all
 	// of its children reliably. This also detaches ^C (sent to us) from
