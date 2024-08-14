@@ -1,7 +1,7 @@
 
 # Default versions of tools, to update these, set [tools.override]
 [tools]
-golang = "1.22"
+golang = "1.23.0"
 shfmt = "3"
 golangci-lint = "1.60.1"
 goreleaser = "latest"
