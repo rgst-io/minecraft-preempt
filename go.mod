@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.5.0
 	github.com/Tnze/go-mc v1.20.2
 	github.com/charmbracelet/log v0.4.0
-	github.com/docker/docker v27.2.0+incompatible
+	github.com/docker/docker v27.2.1+incompatible
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
 	github.com/function61/gokit v0.0.0-20240419102346-a5f721139a62
 	github.com/pkg/errors v0.9.1
