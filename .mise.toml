@@ -3,7 +3,7 @@
 [tools]
 golang = "1.23.3"
 shfmt = "3"
-golangci-lint = "1.61.0"
+golangci-lint = "1.62.0"
 goreleaser = "latest"
 "go:gotest.tools/gotestsum" = "v1.11.0"
 "go:golang.org/x/tools/cmd/goimports" = "latest"
