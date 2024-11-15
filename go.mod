@@ -3,7 +3,7 @@ module github.com/jaredallard/minecraft-preempt/v3
 go 1.21
 
 require (
-	cloud.google.com/go/compute v1.28.3
+	cloud.google.com/go/compute v1.29.0
 	cloud.google.com/go/compute/metadata v0.5.2
 	github.com/Tnze/go-mc v1.20.2
 	github.com/charmbracelet/log v0.4.0
