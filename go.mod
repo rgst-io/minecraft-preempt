@@ -9,7 +9,7 @@ require (
 	github.com/charmbracelet/log v0.4.0
 	github.com/docker/docker v27.3.1+incompatible
 	github.com/egym-playground/go-prefix-writer v0.0.0-20180609083313-7326ea162eca
-	github.com/function61/gokit v0.0.0-20241204133211-ea651d83ca89
+	github.com/function61/gokit v0.0.0-20241219151907-f0ce2a6aac07
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.1
 	gopkg.in/yaml.v3 v3.0.1
