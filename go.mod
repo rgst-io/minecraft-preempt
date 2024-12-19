@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	cloud.google.com/go/compute v1.28.3
-	cloud.google.com/go/compute/metadata v0.5.2
+	cloud.google.com/go/compute/metadata v0.6.0
 	github.com/Tnze/go-mc v1.20.2
 	github.com/charmbracelet/log v0.4.0
 	github.com/docker/docker v27.3.1+incompatible
@@ -64,7 +64,7 @@ require (
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/oauth2 v0.23.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.26.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/api v0.203.0 // indirect
