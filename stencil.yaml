@@ -1,6 +1,9 @@
 name: minecraft-preempt
 arguments:
-  org: jaredallard
+  org: rgst-io
   license: GPL-3.0
+  commands:
+    - minecraft-preempt
+    - minecraft-preempt-agent
 modules:
-- name: github.com/rgst-io/stencil-golang
+  - name: github.com/rgst-io/stencil-golang
