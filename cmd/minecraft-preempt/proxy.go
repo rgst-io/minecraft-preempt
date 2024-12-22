@@ -44,6 +44,8 @@ type Proxy struct {
 }
 
 // NewProxy creates a new proxy
+//
+//nolint:gocritic // Why: OK shadowing log.
 func NewProxy(log *log.Logger, listenAddress string, s []*Server) *Proxy {
 	servers := make(map[string]*Server)
 	for _, server := range s {
@@ -70,6 +72,7 @@ func (p *Proxy) watcher(ctx context.Context) error {
 		// for each server, check the status. Shutdown if we're empty longer
 		// than our configured time.
 		for serverAddress, server := range p.servers {
+			//nolint:gocritic // Why: OK shadowing log.
 			log := p.log.With("server", serverAddress)
 			// if we have connections, don't try to stop the server
 			if server.connections.Load() != 0 {
@@ -170,6 +173,7 @@ func (p *Proxy) handleConnection(ctx context.Context, rawConn *mcnet.Conn) error
 		Conn: rawConn,
 	}
 
+	//nolint:gocritic // Why: OK shadowing log.
 	log := p.log.With("client", rawConn.Socket.RemoteAddr())
 	h, err := minecraftConn.Handshake()
 	if err != nil {

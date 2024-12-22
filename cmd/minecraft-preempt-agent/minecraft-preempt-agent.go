@@ -57,7 +57,7 @@ var rootCmd = &cobra.Command{
 }
 
 // entrypoint is the entrypoint for the root command
-func entrypoint(cCmd *cobra.Command, args []string) error {
+func entrypoint(cCmd *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithCancel(cCmd.Context())
 	defer cancel()
 

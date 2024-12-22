@@ -17,7 +17,7 @@ package minecraft
 
 import (
 	"encoding/json"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/Tnze/go-mc/bot"
@@ -54,7 +54,7 @@ func ListenMC(addr string) (*mcnet.Listener, error) {
 
 // GetServerStatus returns a server's status
 func GetServerStatus(addr string, port uint) (*Status, error) {
-	b, _, err := bot.PingAndListTimeout(addr+":"+strconv.Itoa(int(port)), time.Second*30)
+	b, _, err := bot.PingAndListTimeout(fmt.Sprintf("%s:%d", addr, port), time.Second*30)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to ping server")
 	}

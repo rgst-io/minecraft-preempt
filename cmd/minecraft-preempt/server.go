@@ -67,16 +67,17 @@ func GetCloudProviderForConfig(conf *config.ServerConfig) (cloud.Provider, strin
 		return nil, "", fmt.Errorf("cannot specify both GCP and Docker")
 	}
 
-	if conf.GCP != nil {
+	switch {
+	case conf.GCP != nil:
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		cloudProvider, err = gcp.NewClient(ctx, conf.GCP.Project, conf.GCP.Zone)
 		instanceID = conf.GCP.InstanceID
-	} else if conf.Docker != nil {
+	case conf.Docker != nil:
 		cloudProvider, err = docker.NewClient()
 		instanceID = conf.Docker.ContainerID
-	} else {
+	default:
 		err = fmt.Errorf("no cloud provider specified")
 	}
 
@@ -84,6 +85,8 @@ func GetCloudProviderForConfig(conf *config.ServerConfig) (cloud.Provider, strin
 }
 
 // NewServer creates a new server
+//
+//nolint:gocritic // Why: OK shadowing log.
 func NewServer(log *log.Logger, conf *config.ServerConfig) (*Server, error) {
 	cloudProvider, instanceID, err := GetCloudProviderForConfig(conf)
 	if err != nil {

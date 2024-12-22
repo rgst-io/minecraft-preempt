@@ -97,7 +97,7 @@ func (c *Client) Stop(ctx context.Context, containerID string) error {
 }
 
 // ShouldTerminate returns true if the instance should be terminated.
-func (c *Client) ShouldTerminate(ctx context.Context) (bool, error) {
+func (c *Client) ShouldTerminate(_ context.Context) (bool, error) {
 	// Here for tests, if `shutdown.txt` exists, shutdown.
 	if _, err := os.Stat("shutdown.txt"); err == nil {
 		return true, nil

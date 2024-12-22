@@ -47,9 +47,10 @@ var rootCmd = &cobra.Command{
 }
 
 // entrypoint is the entrypoint for the root command
-func entrypoint(cmd *cobra.Command, args []string) {
+func entrypoint(cmd *cobra.Command, _ []string) {
 	ctx := cmd.Context()
 
+	//nolint:gocritic // Why: OK shadowing log.
 	log := log.NewWithOptions(os.Stderr, log.Options{
 		ReportCaller:    true,
 		ReportTimestamp: true,

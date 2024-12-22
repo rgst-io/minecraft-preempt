@@ -18,7 +18,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	mcnet "github.com/Tnze/go-mc/net"
@@ -67,7 +66,10 @@ type ConnectionHooks struct {
 
 // NewConnection creates a new connection to the provided server. The
 // provided handshake is replayed to the server.
-func NewConnection(mc *minecraft.Client, log *log.Logger, s *Server, h *minecraft.Handshake, hooks *ConnectionHooks) *Connection {
+//
+//nolint:gocritic // Why: OK shadowing log.
+func NewConnection(mc *minecraft.Client, log *log.Logger, s *Server,
+	h *minecraft.Handshake, hooks *ConnectionHooks) *Connection {
 	return &Connection{mc, log, s, h, hooks}
 }
 
@@ -235,7 +237,7 @@ func (c *Connection) Proxy(ctx context.Context) error {
 
 	sconf := c.s.config.Minecraft
 	c.log.Info("Proxying connection", "host", sconf.Hostname, "port", sconf.Port)
-	rconn, err := mcnet.DialMC(sconf.Hostname + ":" + strconv.Itoa(int(sconf.Port)))
+	rconn, err := mcnet.DialMC(fmt.Sprintf("%s:%d", sconf.Hostname, sconf.Port))
 	if err != nil {
 		return errors.Wrap(err, "failed to connect to remote")
 	}

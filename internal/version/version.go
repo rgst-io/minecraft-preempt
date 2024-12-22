@@ -19,9 +19,3 @@ package version
 
 // Version is the version of the program.
 var Version = "unset"
-
-func init() {
-	if Version == "unset" {
-		panic("Version is unset, please run `make`")
-	}
-}
