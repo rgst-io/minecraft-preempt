@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.6.0
 	github.com/Tnze/go-mc v1.20.2
 	github.com/charmbracelet/log v0.4.0
-	github.com/docker/docker v27.5.0+incompatible
+	github.com/docker/docker v27.5.1+incompatible
 	github.com/function61/gokit v0.0.0-20250121135405-a8801788d542
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.8.1
