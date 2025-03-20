@@ -20,6 +20,8 @@ cloud.google.com/go/compute v1.33.0 h1:abGcwWokP7/bBpvRjUKlgchrZXYgRpwcKZIlNUHWf
 cloud.google.com/go/compute v1.33.0/go.mod h1:Z8NErRhrWA3RmVWczlAPJjZcRTlqZB1pcpD0MaIc1ug=
 cloud.google.com/go/compute v1.34.1 h1:scKcg/w9cg+/LFXraAKsFKXihYsyFUBvBJ2igv22VRE=
 cloud.google.com/go/compute v1.34.1/go.mod h1:892Xcmz3MHG7wmiKt4UvRm9t5attc0WZi1JIl57xza0=
+cloud.google.com/go/compute v1.35.0 h1:tGm/iElWaY/N8l5Oeo/23K634kHoar0K753jS+CvOFw=
+cloud.google.com/go/compute v1.35.0/go.mod h1:892Xcmz3MHG7wmiKt4UvRm9t5attc0WZi1JIl57xza0=
 cloud.google.com/go/compute/metadata v0.6.0 h1:A6hENjEsCDtC1k8byVsgwvVcioamEHvZ4j01OwKxG9I=
 cloud.google.com/go/compute/metadata v0.6.0/go.mod h1:FjyFAW1MW0C203CEOMDTu3Dk1FlqW3Rga40jzHL4hfg=
 github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 h1:UQHMgLO+TxOElx5B5HZ4hJQsoJ/PvUvKRhJHDQXO8P8=
