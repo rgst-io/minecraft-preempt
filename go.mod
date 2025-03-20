@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
-	cloud.google.com/go/compute v1.34.1
+	cloud.google.com/go/compute v1.35.0
 	cloud.google.com/go/compute/metadata v0.6.0
 	github.com/Tnze/go-mc v1.20.2
 	github.com/charmbracelet/log v0.4.1
