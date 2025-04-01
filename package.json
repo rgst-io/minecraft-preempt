@@ -2,7 +2,7 @@
 	"//": "Used for prettier",
 	"name": "@rgst-io/minecraft-preempt",
 	"devDependencies": {
-		"prettier": "^3.3.2"
+		"prettier": "^3.5.1"
 	},
 	"private": true
 }
