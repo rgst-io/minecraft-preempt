@@ -63,6 +63,8 @@ github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/function61/gokit v0.0.0-20250122105845-0acfdd5a5212 h1:Uq7dECX1GJ3Gjv81GoXL2GM8TaPuFvC/7nFzHeDG/eQ=
 github.com/function61/gokit v0.0.0-20250122105845-0acfdd5a5212/go.mod h1:ewGYmDoaszHKjwN9S2AM30oQwe4mhvuRUA4uvzzkmRw=
+github.com/function61/gokit v0.0.0-20250527100936-dbe1ad090f88 h1:B3O4zPp7W7M1P7i5kWt90JSzg516/qvYgCPLdBNAyHQ=
+github.com/function61/gokit v0.0.0-20250527100936-dbe1ad090f88/go.mod h1:ewGYmDoaszHKjwN9S2AM30oQwe4mhvuRUA4uvzzkmRw=
 github.com/go-logfmt/logfmt v0.6.0 h1:wGYYu3uicYdqXVgoYbvnkrPVXkuLM1p1ifugDMEdRi4=
 github.com/go-logfmt/logfmt v0.6.0/go.mod h1:WYhtIu8zTZfxdn5+rREduYbwxfcBr/Vr6KEVveWlfTs=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=
