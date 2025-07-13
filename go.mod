@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.4
 
 require (
-	cloud.google.com/go/compute v1.39.0
+	cloud.google.com/go/compute v1.40.0
 	cloud.google.com/go/compute/metadata v0.7.0
 	github.com/Tnze/go-mc v1.20.2
 	github.com/charmbracelet/log v0.4.2
@@ -17,7 +17,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/auth v0.16.1 // indirect
+	cloud.google.com/go/auth v0.16.2 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
@@ -55,25 +55,25 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 // indirect
-	go.opentelemetry.io/otel v1.35.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0 // indirect
+	go.opentelemetry.io/otel v1.36.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.25.0 // indirect
-	go.opentelemetry.io/otel/metric v1.35.0 // indirect
-	go.opentelemetry.io/otel/trace v1.35.0 // indirect
-	golang.org/x/crypto v0.38.0 // indirect
+	go.opentelemetry.io/otel/metric v1.36.0 // indirect
+	go.opentelemetry.io/otel/trace v1.36.0 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
-	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/mod v0.25.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/sync v0.14.0 // indirect
+	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
-	golang.org/x/tools v0.22.0 // indirect
-	google.golang.org/api v0.235.0 // indirect
+	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/tools v0.33.0 // indirect
+	google.golang.org/api v0.239.0 // indirect
 	google.golang.org/genproto v0.0.0-20250505200425-f936aa4a68b2 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250528174236-200df99c418a // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250519155744-55703ea1f237 // indirect
-	google.golang.org/grpc v1.72.2 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
+	google.golang.org/grpc v1.73.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gotest.tools/v3 v3.4.0 // indirect
 )
