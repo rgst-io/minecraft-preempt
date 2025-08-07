@@ -6,7 +6,7 @@ toolchain go1.24.5
 
 require (
 	cloud.google.com/go/compute v1.40.0
-	cloud.google.com/go/compute/metadata v0.7.0
+	cloud.google.com/go/compute/metadata v0.8.0
 	github.com/Tnze/go-mc v1.20.2
 	github.com/charmbracelet/log v0.4.2
 	github.com/docker/docker v28.3.2+incompatible
@@ -66,7 +66,7 @@ require (
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
 	golang.org/x/tools v0.33.0 // indirect
 	google.golang.org/api v0.239.0 // indirect
