@@ -2,7 +2,7 @@ module github.com/jaredallard/minecraft-preempt/v3
 
 go 1.23.0
 
-toolchain go1.24.5
+toolchain go1.25.0
 
 require (
 	cloud.google.com/go/compute v1.40.0
