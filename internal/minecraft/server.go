@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Jared Allard <jared@rgst.io>
+// Copyright (C) 2025 Jared Allard <jared@rgst.io>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Status contains the status of the minecraft server.
 type Status struct {
 	Version     *StatusVersion     `json:"version"`
 	Players     *StatusPlayers     `json:"players"`
@@ -32,17 +33,21 @@ type Status struct {
 	Favicon     string             `json:"favicon"`
 }
 
+// StatusVersion contains the version and protocol information of the
+// minecraft server.
 type StatusVersion struct {
 	Name     string `json:"name"`
 	Protocol int    `json:"protocol"`
 }
 
+// StatusPlayers contains information about player count.
 type StatusPlayers struct {
 	Max    int           `json:"max"`
 	Online int           `json:"online"`
 	Sample []interface{} `json:"sample"`
 }
 
+// StatusDescription contains the description of the minecraft server.
 type StatusDescription struct {
 	Text string `json:"text"`
 }

@@ -71,6 +71,7 @@ func entrypoint(cCmd *cobra.Command, _ []string) error {
 
 	log.With("version", version.Version, "cloud", cloudProvider).Info("starting agent")
 
+	//nolint:gosec // Why: CLI
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", dc, "up", "--no-log-prefix")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

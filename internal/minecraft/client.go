@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// Package minecraft contains the logic for interacting with Minecraft
+// at a transport level.
 package minecraft
 
 import (

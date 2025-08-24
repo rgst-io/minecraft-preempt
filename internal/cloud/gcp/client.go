@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// Package gcp contains an implementation of the cloud package's
+// interface that uses GCP as the backing implementation.
 package gcp
 
 import (

@@ -61,6 +61,11 @@ linters:
           - gocyclo
           - goheader # Don't require license headers in test files.
           - gosec
+      # Checking return of Close() is optional.
+      - path: '(.+)\.go$'
+        text: 'Error return value of `(.*\.Close|fmt\.F.*)` is not checked'
+      - path: '(.+)\.go$'
+        text: "G104: Errors unhandled" # Duplicates errcheck.
 
 # formatter settings
 formatters:

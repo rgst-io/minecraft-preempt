@@ -253,7 +253,7 @@ func (c *Connection) Proxy(ctx context.Context) error {
 
 	// Proxy the connection to the remote server
 	if err := bidipipe.Pipe(
-		bidipipe.WithName("client", c.Conn.Socket),
+		bidipipe.WithName("client", c.Socket),
 		bidipipe.WithName("remote", rconn),
 	); err != nil && !strings.Contains(err.Error(), "use of closed network connection") {
 		return errors.Wrap(err, "failed to proxy")

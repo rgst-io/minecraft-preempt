@@ -235,7 +235,7 @@ func (p *Proxy) handleConnection(ctx context.Context, rawConn *mcnet.Conn) error
 // accept accepts a connection on the proxy listener.
 func (p *Proxy) accept() (*mcnet.Conn, error) {
 	// TODO(george-e-shaw-iv): Someone needs to go and make the underlying library respect context with net.ListenConfig.
-	rawConn, err := p.Listener.Accept()
+	rawConn, err := p.Accept()
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
 			return nil, err // Context cancellation is a real error.
@@ -252,7 +252,7 @@ func (p *Proxy) accept() (*mcnet.Conn, error) {
 // Stop stops the server
 func (p *Proxy) Stop(ctx context.Context) error {
 	if p.Listener != nil {
-		return p.Listener.Close()
+		return p.Close()
 	}
 
 	// wait for all connections to drain
@@ -261,12 +261,7 @@ func (p *Proxy) Stop(ctx context.Context) error {
 		if connections > 0 {
 			p.log.Info("Waiting for connections to drain during shutdown", "server", server.config.Hostname, "connections", connections)
 
-			for {
-				// check if we have no connections
-				if server.connections.Load() == 0 {
-					break // stop watching this server, but check others if present.
-				}
-
+			for server.connections.Load() != 0 {
 				// wait before checking again, but also break if the context is cancelled
 				select {
 				case <-ctx.Done():

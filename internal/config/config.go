@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// Package config contains configuration for the program.
 package config
 
 import (
@@ -158,6 +159,7 @@ func LoadProxyConfig(path string) (*ProxyConfig, error) {
 	if os.Getenv("CONFIG") != "" {
 		reader = io.NopCloser(strings.NewReader(os.Getenv("CONFIG")))
 	} else {
+		//nolint:gosec // Why: We're OK with this.
 		f, err := os.Open(path)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to open config file")
