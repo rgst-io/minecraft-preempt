@@ -96,7 +96,7 @@ jobs:
           ## <<Stencil::Block(goreleaseEnvVars)>>
 
           ## <</Stencil::Block>>
-      - uses: actions/attest-build-provenance@v2
+      - uses: actions/attest-build-provenance@v3
         with:
           # We attest all generated _archives_ because those are what we
           # upload to Github Releases.
