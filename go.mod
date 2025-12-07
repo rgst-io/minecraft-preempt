@@ -12,7 +12,7 @@ require (
 	github.com/docker/docker v28.5.1+incompatible
 	github.com/function61/gokit v0.0.0-20250704123853-66cf16f69a87
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
 )
 
