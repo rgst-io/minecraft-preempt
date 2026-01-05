@@ -22,6 +22,8 @@ cloud.google.com/go/compute v1.50.0 h1:NXei5NtFLaTurzaVLs9500P41CPowQhrqcFOw3gBZ
 cloud.google.com/go/compute v1.50.0/go.mod h1:zdogTa7daHhEtEX92+S5IARtQmi/RNVPUfoI8Jhl8Do=
 cloud.google.com/go/compute v1.51.0 h1:QtSH2H1b5geXTJ6lqjCqH6SL0Vo1DTqACszjJ3uU9Jo=
 cloud.google.com/go/compute v1.51.0/go.mod h1:zdogTa7daHhEtEX92+S5IARtQmi/RNVPUfoI8Jhl8Do=
+cloud.google.com/go/compute v1.52.0 h1:SxiTrTFR/QmDbZ0cfo/8VxK/NUZSwn92+iHLDSQ51Fo=
+cloud.google.com/go/compute v1.52.0/go.mod h1:zdogTa7daHhEtEX92+S5IARtQmi/RNVPUfoI8Jhl8Do=
 cloud.google.com/go/compute/metadata v0.8.0 h1:HxMRIbao8w17ZX6wBnjhcDkW6lTFpgcaobyVfZWqRLA=
 cloud.google.com/go/compute/metadata v0.8.0/go.mod h1:sYOGTp851OV9bOFJ9CH7elVvyzopvWQFNNghtDQ/Biw=
 cloud.google.com/go/compute/metadata v0.8.3 h1:1AzcHmzbrX8t3m0CVosfxCAwGvaAShtrnlNxDriLgIk=
