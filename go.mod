@@ -10,7 +10,7 @@ require (
 	github.com/Tnze/go-mc v1.20.2
 	github.com/charmbracelet/log v0.4.2
 	github.com/docker/docker v28.5.2+incompatible
-	github.com/function61/gokit v0.0.0-20250704123853-66cf16f69a87
+	github.com/function61/gokit v0.0.0-20260109142558-7b125766c662
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
 	gopkg.in/yaml.v3 v3.0.1
