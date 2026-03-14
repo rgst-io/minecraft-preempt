@@ -39,10 +39,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - uses: jdx/mise-action@v4
-        with:
-          experimental: true
-        env:
-          GH_TOKEN: ${{ github.token }}
+        with: {}
       - name: Get Go directories
         id: go
         run: |
@@ -69,7 +66,7 @@ jobs:
       - name: Set up git user
         uses: fregante/setup-git-user@v2
       - name: Download syft (SBOM)
-        uses: anchore/sbom-action/download-syft@v0.23.1
+        uses: anchore/sbom-action/download-syft@v0
 
       # Bumping logic
       - name: Get next version
@@ -78,19 +75,17 @@ jobs:
           BUILD_RC: ${{ github.event.inputs.rc }}
           VERSION_OVERRIDE: ${{ github.event.inputs.version }}
         run: |-
-          echo "version=$(./.github/scripts/get-next-version.sh)" >> "$GITHUB_OUTPUT"
+          echo "version=$(mise run next-version)" >> "$GITHUB_OUTPUT"
       - name: Create Tag
         run: |-
           git tag -a "${{ steps.next_version.outputs.version }}" -m "Release ${{ steps.next_version.outputs.version }}"
       - name: Generate CHANGELOG
+        env: {}
         run: |-
           mise run changelog-release
       - name: Create release artifacts and Github Release
-        uses: goreleaser/goreleaser-action@v7
-        with:
-          distribution: goreleaser
-          version: v${{ steps.goreleaser.outputs.version }}
-          args: release --release-notes CHANGELOG.md --clean
+        run: |-
+          goreleaser release --release-notes CHANGELOG.md --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ## <<Stencil::Block(goreleaseEnvVars)>>

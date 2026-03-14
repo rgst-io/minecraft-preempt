@@ -25,6 +25,7 @@ builds:
     goos:
       - linux
       - darwin
+      - windows
       ## <<Stencil::Block(minecraft-preemptExtraOS)>>
 
       ## <</Stencil::Block>>
@@ -33,8 +34,6 @@ builds:
         goarch: arm
     mod_timestamp: "{{ .CommitTimestamp }}"
   - main: ./cmd/minecraft-preempt-agent
-    id: minecraft-preempt-agent
-    binary: minecraft-preempt-agent
     flags:
       - -trimpath
     ldflags:
@@ -54,6 +53,7 @@ builds:
     goos:
       - linux
       - darwin
+      - windows
       ## <<Stencil::Block(minecraft-preempt-agentExtraOS)>>
 
       ## <</Stencil::Block>>
@@ -61,42 +61,22 @@ builds:
       - goos: windows
         goarch: arm
     mod_timestamp: "{{ .CommitTimestamp }}"
-dockers:
-  # amd64
-  - use: buildx
-    build_flag_templates:
-      - --platform=linux/amd64
-      - --label=org.opencontainers.image.title={{ .ProjectName }}
-      - --label=org.opencontainers.image.description={{ .ProjectName }}
-      - --label=org.opencontainers.image.url=https://github.com/rgst-io/{{ .ProjectName }}
-      - --label=org.opencontainers.image.source=https://github.com/rgst-io/{{ .ProjectName }}
-      - --label=org.opencontainers.image.version={{ .Version }}
-      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
-      - --label=org.opencontainers.image.revision={{ .FullCommit }}
-      - --label=org.opencontainers.image.licenses=GPL-3.0
-    image_templates:
-      - "ghcr.io/rgst-io/{{ .ProjectName }}:{{ .Version }}-amd64"
-  # arm64
-  - use: buildx
-    goos: linux
-    goarch: arm64
-    build_flag_templates:
-      - --platform=linux/arm64
-      - --label=org.opencontainers.image.title={{ .ProjectName }}
-      - --label=org.opencontainers.image.description={{ .ProjectName }}
-      - --label=org.opencontainers.image.url=https://github.com/rgst-io/{{ .ProjectName }}
-      - --label=org.opencontainers.image.source=https://github.com/rgst-io/{{ .ProjectName }}
-      - --label=org.opencontainers.image.version={{ .Version }}
-      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
-      - --label=org.opencontainers.image.revision={{ .FullCommit }}
-      - --label=org.opencontainers.image.licenses=GPL-3.0
-    image_templates:
-      - "ghcr.io/rgst-io/{{ .ProjectName }}:{{ .Version }}-arm64"
-docker_manifests:
-  - name_template: "ghcr.io/rgst-io/{{ .ProjectName }}:{{ .Version }}"
-    image_templates:
-      - "ghcr.io/rgst-io/{{ .ProjectName }}:{{ .Version }}-arm64"
-      - "ghcr.io/rgst-io/{{ .ProjectName }}:{{ .Version }}-amd64"
+dockers_v2:
+  - images:
+      ## <<Stencil::Block(extraReleaseOpts)>>
+      - ghcr.io/rgst-io/{{ .ProjectName }}
+      ## <</Stencil::Block>>
+    labels:
+      "org.opencontainers.image.title": "{{ .ProjectName }}"
+      "org.opencontainers.image.description": "{{ .ProjectName }}"
+      "org.opencontainers.image.source": "{{ .GitURL }}"
+      "org.opencontainers.image.version": "{{ .Version }}"
+      "org.opencontainers.image.created": "{{ .Date }}"
+      "org.opencontainers.image.revision": "{{ .FullCommit }}"
+      "org.opencontainers.image.licenses": "GPL-3.0"
+    platforms:
+      - linux/amd64
+      - linux/arm64
 checksum:
   name_template: "checksums.txt"
 snapshot:

@@ -19,10 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: jdx/mise-action@v4
-        with:
-          experimental: true
-        env:
-          GH_TOKEN: ${{ github.token }}
+        with: {}
       - name: Get Go directories
         id: go
         run: |
@@ -39,10 +36,11 @@ jobs:
       - name: Download dependencies
         run: go mod download
       - name: Run go test
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gotestsum -- -coverprofile=cover.out ./...
+        env: {}
+        ## <<Stencil::Block(gotestEnvVars)>>
+
+        ## <</Stencil::Block>>
+        run: gotestsum -- -coverprofile=cover.out ./...
       - name: Upload test coverage
         uses: codecov/codecov-action@v5
         with:
@@ -56,10 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: jdx/mise-action@v4
-        with:
-          experimental: true
-        env:
-          GH_TOKEN: ${{ github.token }}
+        with: {}
       - name: Retrieve golangci-lint version
         run: |
           echo "version=$(mise current golangci-lint)" >> "$GITHUB_OUTPUT"
