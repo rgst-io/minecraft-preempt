@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"strings"
 
+	"charm.land/log/v2"
 	mcnet "github.com/Tnze/go-mc/net"
 	pk "github.com/Tnze/go-mc/net/packet"
-	"github.com/charmbracelet/log"
 	"github.com/function61/gokit/io/bidipipe"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/minecraft"

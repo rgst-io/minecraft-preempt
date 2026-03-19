@@ -27,7 +27,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/charmbracelet/log"
+	"charm.land/log/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/jaredallard/minecraft-preempt/v3/internal/config"

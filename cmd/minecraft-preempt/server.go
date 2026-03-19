@@ -21,8 +21,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"charm.land/log/v2"
 	mcnet "github.com/Tnze/go-mc/net"
-	"github.com/charmbracelet/log"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/docker"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/gcp"

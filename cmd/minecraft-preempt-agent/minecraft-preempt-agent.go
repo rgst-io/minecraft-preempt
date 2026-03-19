@@ -32,7 +32,7 @@ import (
 	"syscall"
 	"time"
 
-	logger "github.com/charmbracelet/log"
+	logger "charm.land/log/v2"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/docker"
 	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/gcp"
