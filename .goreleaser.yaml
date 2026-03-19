@@ -21,18 +21,8 @@ builds:
     goarch:
       - amd64
       - arm64
-      ## <<Stencil::Block(minecraft-preemptExtraArch)>>
-
-      ## <</Stencil::Block>>
     goos:
       - linux
-      - darwin
-      ## <<Stencil::Block(minecraft-preemptExtraOS)>>
-
-      ## <</Stencil::Block>>
-    ignore:
-      - goos: windows
-        goarch: arm
     mod_timestamp: "{{ .CommitTimestamp }}"
   - main: ./cmd/minecraft-preempt-agent
     id: minecraft-preempt-agent
@@ -43,31 +33,22 @@ builds:
       - -s
       - -w
       ## <<Stencil::Block(minecraft-preempt-agentLdflags)>>
-
+      - -X github.com/jaredallard/minecraft-preempt/v3/internal/version.Version={{ .Version }}
       ## <</Stencil::Block>>
     env:
       - CGO_ENABLED=0
     goarch:
       - amd64
       - arm64
-      ## <<Stencil::Block(minecraft-preempt-agentExtraArch)>>
-
-      ## <</Stencil::Block>>
     goos:
       - linux
-      - darwin
-      ## <<Stencil::Block(minecraft-preempt-agentExtraOS)>>
-
-      ## <</Stencil::Block>>
-    ignore:
-      - goos: windows
-        goarch: arm
     mod_timestamp: "{{ .CommitTimestamp }}"
+archives:
+  - formats:
+      - none
 dockers_v2:
   - images:
-      ## <<Stencil::Block(extraReleaseOpts)>>
       - ghcr.io/rgst-io/{{ .ProjectName }}
-      ## <</Stencil::Block>>
     labels:
       "org.opencontainers.image.title": "{{ .ProjectName }}"
       "org.opencontainers.image.description": "{{ .ProjectName }}"
@@ -86,9 +67,16 @@ snapshot:
 changelog:
   use: git
 release:
+  gitea:
+    owner: rgst-io
+    name: minecraft-preempt
   prerelease: "auto"
   footer: |-
-    **Full Changelog**: https://github.com/rgst-io/minecraft-preempt/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://git.rgst.io/rgst-io/minecraft-preempt/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+gitea_urls:
+  api: https://git.rgst.io/api/v1
+  download: https://git.rgst.io
 
 ## <<Stencil::Block(extraReleaseOpts)>>
 

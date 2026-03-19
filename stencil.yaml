@@ -5,5 +5,10 @@ arguments:
   commands:
     - minecraft-preempt
     - minecraft-preempt-agent
+  vcs: forgejo
+  vcs_host: git.rgst.io
+  goos: [linux]
+  release_targets: [github]
+  release_formats: [docker]
 modules:
   - name: github.com/rgst-io/stencil-golang
