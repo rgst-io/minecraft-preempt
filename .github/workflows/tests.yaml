@@ -18,7 +18,7 @@ env:
   # unlike the token provided by act.
   #
   ## <<Stencil::Block(forgejoGithubToken)>>
-  REAL_GITHUB_TOKEN: ${{ github.token }}
+  REAL_GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_WRITE }}
   ## <</Stencil::Block>>
 
 jobs:

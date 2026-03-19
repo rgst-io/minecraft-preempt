@@ -33,7 +33,7 @@ env:
   # unlike the token provided by act.
   #
   ## <<Stencil::Block(forgejoGithubToken)>>
-  REAL_GITHUB_TOKEN: ${{ github.token }}
+  REAL_GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_WRITE }}
   ## <</Stencil::Block>>
 
   # Forgejo's Action token does not have permissions to write to the
@@ -41,7 +41,7 @@ env:
   # https://codeberg.org/forgejo/forgejo/issues/6198
   #
   ## <<Stencil::Block(forgejoPackageToken)>>
-  FORGEJO_PACKAGE_TOKEN: ${{ github.token }}
+  FORGEJO_PACKAGE_TOKEN: ${{ secrets.FORGEJO_PACKAGES_WRITE }}
   ## <</Stencil::Block>>
 
 jobs:
