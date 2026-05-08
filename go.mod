@@ -4,7 +4,7 @@ go 1.25.8
 
 require (
 	charm.land/log/v2 v2.0.0
-	cloud.google.com/go/compute v1.61.0
+	cloud.google.com/go/compute v1.62.0
 	cloud.google.com/go/compute/metadata v0.9.0
 	github.com/Tnze/go-mc v1.20.2
 	github.com/docker/docker v28.5.2+incompatible
