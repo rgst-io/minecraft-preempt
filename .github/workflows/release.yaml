@@ -33,7 +33,7 @@ env:
   # unlike the token provided by act.
   #
   ## <<Stencil::Block(forgejoGithubToken)>>
-  REAL_GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_WRITE }}
+  REAL_GITHUB_TOKEN: ${{ secrets.REAL_GITHUB_TOKEN }}
   ## <</Stencil::Block>>
 
   # Forgejo's Action token does not have permissions to write to the
