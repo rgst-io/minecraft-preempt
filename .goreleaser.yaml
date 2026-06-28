@@ -60,10 +60,13 @@ dockers_v2:
     platforms:
       - linux/amd64
       - linux/arm64
+  ## <<Stencil::Block(extraDockerOpts)>>
+
+  ## <</Stencil::Block>>
 checksum:
   name_template: "checksums.txt"
 snapshot:
-  version_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ .Commit }}"
 changelog:
   use: git
 release:
@@ -73,7 +76,6 @@ release:
   prerelease: "auto"
   footer: |-
     **Full Changelog**: https://git.rgst.io/rgst-io/minecraft-preempt/compare/{{ .PreviousTag }}...{{ .Tag }}
-
 gitea_urls:
   api: https://git.rgst.io/api/v1
   download: https://git.rgst.io

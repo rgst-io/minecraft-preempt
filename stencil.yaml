@@ -11,4 +11,4 @@ arguments:
   release_targets: [github]
   release_formats: [docker]
 modules:
-  - name: github.com/rgst-io/stencil-golang
+  - name: go.rgst.io/rgst-io/stencil-golang
