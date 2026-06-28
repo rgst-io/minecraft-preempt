@@ -21,6 +21,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/moby/moby/api/types/container"
 	dockerclient "github.com/moby/moby/client"
 	"github.com/pkg/errors"
 	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/cloud"
@@ -71,17 +72,17 @@ func (c *Client) Status(ctx context.Context, containerID string) (cloud.Provider
 	}
 
 	switch resp.Container.State.Status {
-	case "exited", "dead":
+	case container.StateExited, container.StateDead, container.StatePaused:
 		return cloud.StatusStopped, nil
-	case "removing":
+	case container.StateRemoving:
 		return cloud.StatusStopping, nil
-	case "running":
+	case container.StateRunning:
 		return cloud.StatusRunning, nil
-	case "created":
+	case container.StateCreated, container.StateRestarting:
 		return cloud.StatusStarting, nil
+	default:
+		return cloud.StatusUnknown, nil
 	}
-
-	return cloud.StatusUnknown, nil
 }
 
 // Stop stops a container
