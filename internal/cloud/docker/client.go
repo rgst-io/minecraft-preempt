@@ -21,10 +21,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/docker/docker/api/types/container"
-	dockerclient "github.com/docker/docker/client"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
+	dockerclient "github.com/moby/moby/client"
 	"github.com/pkg/errors"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/cloud"
 )
 
 // Contains all of the error types for this package
@@ -41,7 +40,7 @@ type Client struct {
 
 // NewClient creates a new client
 func NewClient() (*Client, error) {
-	c, err := dockerclient.NewClientWithOpts(dockerclient.FromEnv, dockerclient.WithAPIVersionNegotiation())
+	c, err := dockerclient.New(dockerclient.FromEnv)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create docker client")
 	}
@@ -51,26 +50,27 @@ func NewClient() (*Client, error) {
 
 // Start starts a container
 func (c *Client) Start(ctx context.Context, containerID string) error {
-	cont, err := c.d.ContainerInspect(ctx, containerID)
+	resp, err := c.d.ContainerInspect(ctx, containerID, dockerclient.ContainerInspectOptions{})
 	if err != nil {
 		return err
 	}
 
-	if cont.State.Status != "exited" {
+	if resp.Container.State.Status != "exited" {
 		return ErrNotStopped
 	}
 
-	return c.d.ContainerStart(ctx, cont.ID, container.StartOptions{})
+	_, err = c.d.ContainerStart(ctx, resp.Container.ID, dockerclient.ContainerStartOptions{})
+	return err
 }
 
 // Status returns the status of a container
 func (c *Client) Status(ctx context.Context, containerID string) (cloud.ProviderStatus, error) {
-	cont, err := c.d.ContainerInspect(ctx, containerID)
+	resp, err := c.d.ContainerInspect(ctx, containerID, dockerclient.ContainerInspectOptions{})
 	if err != nil {
 		return "", err
 	}
 
-	switch cont.State.Status {
+	switch resp.Container.State.Status {
 	case "exited", "dead":
 		return cloud.StatusStopped, nil
 	case "removing":
@@ -86,16 +86,17 @@ func (c *Client) Status(ctx context.Context, containerID string) (cloud.Provider
 
 // Stop stops a container
 func (c *Client) Stop(ctx context.Context, containerID string) error {
-	cont, err := c.d.ContainerInspect(ctx, containerID)
+	resp, err := c.d.ContainerInspect(ctx, containerID, dockerclient.ContainerInspectOptions{})
 	if err != nil {
 		return err
 	}
 
-	if cont.State.Status == "exited" {
+	if resp.Container.State.Status == "exited" {
 		return ErrNotStopped
 	}
 
-	return c.d.ContainerStop(ctx, cont.ID, container.StopOptions{})
+	_, err = c.d.ContainerStop(ctx, resp.Container.ID, dockerclient.ContainerStopOptions{})
+	return err
 }
 
 // ShouldTerminate returns true if the instance should be terminated.

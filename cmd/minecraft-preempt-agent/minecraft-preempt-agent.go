@@ -33,11 +33,11 @@ import (
 	"time"
 
 	logger "charm.land/log/v2"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/docker"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/gcp"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/version"
 	"github.com/spf13/cobra"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/cloud"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/cloud/docker"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/cloud/gcp"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/version"
 )
 
 // log is the global logger for the agent.

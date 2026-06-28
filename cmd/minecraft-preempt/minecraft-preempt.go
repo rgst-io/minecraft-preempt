@@ -30,8 +30,8 @@ import (
 	"charm.land/log/v2"
 	"github.com/spf13/cobra"
 
-	"github.com/jaredallard/minecraft-preempt/v3/internal/config"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/version"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/config"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/version"
 )
 
 // rootCmd is the root command used by cobra

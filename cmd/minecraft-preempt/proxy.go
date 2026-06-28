@@ -24,9 +24,9 @@ import (
 
 	"charm.land/log/v2"
 	mcnet "github.com/Tnze/go-mc/net"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/minecraft"
 	"github.com/pkg/errors"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/cloud"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/minecraft"
 )
 
 // Proxy is a proxy server

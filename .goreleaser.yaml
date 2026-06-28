@@ -14,7 +14,7 @@ builds:
       - -s
       - -w
       ## <<Stencil::Block(minecraft-preemptLdflags)>>
-      - -X github.com/jaredallard/minecraft-preempt/v3/internal/version.Version={{ .Version }}
+      - -X go.rgst.io/idlerealm/minecraft-preempt/v4/internal/version.Version={{ .Version }}
       ## <</Stencil::Block>>
     env:
       - CGO_ENABLED=0
@@ -33,7 +33,7 @@ builds:
       - -s
       - -w
       ## <<Stencil::Block(minecraft-preempt-agentLdflags)>>
-      - -X github.com/jaredallard/minecraft-preempt/v3/internal/version.Version={{ .Version }}
+      - -X go.rgst.io/idlerealm/minecraft-preempt/v4/internal/version.Version={{ .Version }}
       ## <</Stencil::Block>>
     env:
       - CGO_ENABLED=0

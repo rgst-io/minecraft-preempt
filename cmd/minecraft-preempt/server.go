@@ -23,11 +23,11 @@ import (
 
 	"charm.land/log/v2"
 	mcnet "github.com/Tnze/go-mc/net"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/docker"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud/gcp"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/config"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/minecraft"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/cloud"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/cloud/docker"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/cloud/gcp"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/config"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/minecraft"
 )
 
 // Server is a proxy server

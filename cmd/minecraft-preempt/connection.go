@@ -24,9 +24,9 @@ import (
 	mcnet "github.com/Tnze/go-mc/net"
 	pk "github.com/Tnze/go-mc/net/packet"
 	"github.com/function61/gokit/io/bidipipe"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/cloud"
-	"github.com/jaredallard/minecraft-preempt/v3/internal/minecraft"
 	"github.com/pkg/errors"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/cloud"
+	"go.rgst.io/idlerealm/minecraft-preempt/v4/internal/minecraft"
 )
 
 // Connection is a connection to our proxy instance.
