@@ -8,7 +8,6 @@ arguments:
   vcs: forgejo
   vcs_host: git.rgst.io
   goos: [linux]
-  release_targets: [github]
-  release_formats: [docker]
+  release_targets: [vcs]
 modules:
   - name: go.rgst.io/rgst-io/stencil-golang
