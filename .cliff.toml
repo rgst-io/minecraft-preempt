@@ -10,7 +10,7 @@
 header = """"""
 body = """
 {%- macro remote_url() -%}
-  https://git.rgst.io/rgst-io/minecraft-preempt
+  https://git.rgst.io/idlerealm/minecraft-preempt
 {%- endmacro -%}
 
 {% macro print_commit(commit) -%}
@@ -70,7 +70,7 @@ footer = """"""
 trim = true
 # postprocessors
 postprocessors = [
-  { pattern = '<REPO>', replace = "https://git.rgst.io/rgst-io/minecraft-preempt" }, # replace repository URL
+  { pattern = '<REPO>', replace = "https://git.rgst.io/idlerealm/minecraft-preempt" }, # replace repository URL
 ]
 
 [git]

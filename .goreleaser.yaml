@@ -45,7 +45,7 @@ builds:
     mod_timestamp: "{{ .CommitTimestamp }}"
 dockers_v2:
   - images:
-      - git.rgst.io/rgst-io/{{ .ProjectName }}
+      - git.rgst.io/idlerealm/{{ .ProjectName }}
     labels:
       "org.opencontainers.image.title": "{{ .ProjectName }}"
       "org.opencontainers.image.description": "{{ .ProjectName }}"
@@ -68,11 +68,11 @@ changelog:
   use: git
 release:
   gitea:
-    owner: rgst-io
+    owner: idlerealm
     name: minecraft-preempt
   prerelease: "auto"
   footer: |-
-    **Full Changelog**: https://git.rgst.io/rgst-io/minecraft-preempt/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://git.rgst.io/idlerealm/minecraft-preempt/compare/{{ .PreviousTag }}...{{ .Tag }}
 gitea_urls:
   api: https://git.rgst.io/api/v1
   download: https://git.rgst.io

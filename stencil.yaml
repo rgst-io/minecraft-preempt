@@ -1,6 +1,6 @@
 name: minecraft-preempt
 arguments:
-  org: rgst-io
+  org: idlerealm
   license: GPL-3.0
   commands:
     - minecraft-preempt
